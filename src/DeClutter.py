@@ -5,7 +5,7 @@ from time import time
 import logging
 import webbrowser
 import requests
-from PySide6.QtGui import QIcon, QAction, QPalette, QColor
+from PySide6.QtGui import QIcon, QAction, QPalette, QColor, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
     QSystemTrayIcon,
@@ -30,6 +30,7 @@ from declutter.file_utils import open_file
 from declutter.logging_utils import _refresh_log_file_handler
 
 from src.declutter_tagger import TaggerWindow
+from src.ui.macos_style import apply_macos_styling
 
 
 class RulesWindow(QMainWindow):
@@ -64,7 +65,10 @@ class RulesWindow(QMainWindow):
 
         style = self.settings.get("style", "Fusion")
         theme = self.settings.get("theme", "System")
-        apply_style_and_theme(QApplication.instance(), style, theme)
+        if sys.platform == "darwin":
+            apply_macos_styling(self)
+        else:
+            apply_style_and_theme(QApplication.instance(), style, theme)
 
         self.ui.addRule.clicked.connect(self.add_rule)
         self.load_rules()
@@ -97,11 +101,17 @@ class RulesWindow(QMainWindow):
         self.ui.actionExecute.triggered.connect(self.apply_rule)
         self.ui.actionOpen_log_file.triggered.connect(self.open_log_file)
         self.ui.actionClear_log_file.triggered.connect(self.clear_log_file)
+        self.ui.actionSettings.setMenuRole(QAction.MenuRole.NoRole)
+        self.ui.actionSettings.setShortcut(QKeySequence.StandardKey.Preferences)
         self.ui.actionSettings.triggered.connect(self.show_settings)
         self.ui.actionAbout.triggered.connect(self.show_about)
         self.ui.actionOpen_Tagger.triggered.connect(self.show_tagger)
         self.tagger = TaggerWindow()
         self.ui.actionManage_Tags.triggered.connect(self.tagger.manage_tags)
+
+        self._settings_dialog = SettingsDialog()
+        self._settings_dialog.accepted.connect(self._on_settings_saved)
+        self._settings_dialog.finished.connect(self._on_settings_closed)
 
         self.ui.actionMove_up.triggered.connect(self.move_rule_up)
         self.ui.actionMove_down.triggered.connect(self.move_rule_down)
@@ -230,24 +240,34 @@ class RulesWindow(QMainWindow):
         )
 
     def show_settings(self):
-        """Shows the settings dialog."""
+        """Shows the settings dialog (reuses a single instance)."""
         _set_macos_activation_policy(False)
-        settings_window = SettingsDialog()
-        result = settings_window.exec()
-        _set_macos_activation_policy(True)
-        if result:
-            self.settings = load_settings()
-            self.trayIcon.setToolTip(
-                "DeClutter runs every "
-                + str(float(self.settings["rule_exec_interval"] / 60))
-                + " minute(s)"
-            )
-            self.timer.setInterval(int(self.settings["rule_exec_interval"] * 1000))
+        self._settings_dialog.refresh()
+        self._settings_dialog.show()
+        self._settings_dialog.raise_()
+        self._settings_dialog.activateWindow()
 
-            # Apply style and palette after settings change
+    def _on_settings_saved(self):
+        """Slot called when the Settings dialog is accepted (OK/Save)."""
+        self.settings = load_settings()
+        self.trayIcon.setToolTip(
+            "DeClutter runs every "
+            + str(float(self.settings["rule_exec_interval"] / 60))
+            + " minute(s)"
+        )
+        self.timer.setInterval(int(self.settings["rule_exec_interval"] * 1000))
+
+        # On macOS, styling is managed by apply_macos_styling — skip
+        # apply_style_and_theme which would wipe the macOS stylesheet.
+        if sys.platform != "darwin":
             style = self.settings.get("style", "Fusion")
             theme = self.settings.get("theme", "System")
             apply_style_and_theme(QApplication.instance(), style, theme)
+
+    def _on_settings_closed(self):
+        """Slot called when the Settings dialog is dismissed (OK or Cancel)."""
+        if not self.isVisible():
+            _set_macos_activation_policy(True)
 
     def change_style(self, style_name):
         """Changes the application's style."""
@@ -423,6 +443,7 @@ class RulesWindow(QMainWindow):
         self.showTaggerWindow.triggered.connect(self.show_tagger)
 
         self.showSettingsWindow = QAction("Settings", self)
+        self.showSettingsWindow.setMenuRole(QAction.MenuRole.NoRole)
         self.showSettingsWindow.triggered.connect(self.show_settings)
 
         self.quitAction = QAction("Quit", self)
@@ -794,7 +815,7 @@ def main():
     else:
         _set_macos_activation_policy(True)
 
-    window.setWindowTitle("DeClutter " + VERSION)
+    window.setWindowTitle("Rules")
     sys.exit(app.exec())
 
 

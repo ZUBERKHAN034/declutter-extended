@@ -245,9 +245,6 @@ class Ui_Condition(object):
         self.typeSwitchCombo.addItem("")
         self.typeSwitchCombo.addItem("")
         self.typeSwitchCombo.setObjectName(u"typeSwitchCombo")
-        self.typeSwitchCombo.setMinimumSize(QSize(60, 0))
-        self.typeSwitchCombo.setMaximumSize(QSize(50, 16777215))
-        self.typeSwitchCombo.setBaseSize(QSize(0, 0))
         self.typeSwitchCombo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
         self.typeSwitchCombo.setMinimumContentsLength(5)
 

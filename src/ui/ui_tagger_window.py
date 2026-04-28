@@ -322,7 +322,7 @@ class Ui_taggerWindow(object):
     # setupUi
 
     def retranslateUi(self, taggerWindow):
-        taggerWindow.setWindowTitle(QCoreApplication.translate("taggerWindow", u"DeClutter: Tagger", None))
+        taggerWindow.setWindowTitle(QCoreApplication.translate("taggerWindow", u"Tagger", None))
         self.actionManage_Tags.setText(QCoreApplication.translate("taggerWindow", u"Manage Tags", None))
         self.actionNone.setText(QCoreApplication.translate("taggerWindow", u"None", None))
         self.actionNew_tagger_window.setText(QCoreApplication.translate("taggerWindow", u"New tagger window", None))

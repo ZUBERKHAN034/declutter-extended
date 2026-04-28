@@ -9,6 +9,9 @@ import time
 from declutter.config import SETTINGS_FILE
 from . import set_schema_version
 
+# Import default types lazily to avoid circular-import at module load time;
+# we reference it inside the function body only.
+
 
 def migration_2(conn: sqlite3.Connection):
     c = conn.cursor()
@@ -123,6 +126,23 @@ def migration_2(conn: sqlite3.Connection):
             logging.info(f"Migrated settings.json -> {backup}")
         except Exception as e:
             logging.exception(f"Failed to archive settings.json: {e}")
+
+    # Seed default file types if the table is still empty after the legacy import.
+    # This covers fresh installs that have no settings.json.
+    row = c.execute("SELECT COUNT(1) AS cnt FROM file_types").fetchone()
+    if (row["cnt"] if row else 0) == 0:
+        from declutter.store import DEFAULT_FILE_TYPES
+        order = 1
+        for name, patterns in DEFAULT_FILE_TYPES.items():
+            try:
+                c.execute(
+                    "INSERT OR IGNORE INTO file_types(name, patterns, list_order) VALUES (?,?,?)",
+                    (name, patterns, order)
+                )
+            except Exception as e:
+                logging.exception(f"default file_type insert failed for {name}: {e}")
+            order += 1
+        conn.commit()
 
     set_schema_version(conn, 2)
 

@@ -64,6 +64,7 @@ from declutter.file_utils import get_file_type, open_file
 
 from src.file_system_model_lite import FileSystemModelLite
 from src.condition_dialog import ConditionDialog
+from src.ui.macos_style import apply_macos_styling
 
 
 class TaggerWindow(QMainWindow):
@@ -73,6 +74,7 @@ class TaggerWindow(QMainWindow):
         self.ui.setupUi(self)
         if sys.platform == "darwin":
             self.setWindowIcon(QIcon(":/images/icons/DeClutter_mac.png"))
+            apply_macos_styling(self)
         else:
             self.setWindowIcon(QIcon(":/images/icons/DeClutter.ico"))
 

@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QStandardItemModel, QStandardItem, QIcon
 from src.ui.ui_tags_dialog import Ui_tagsDialog
+from src.ui.macos_style import apply_macos_styling
 from declutter.tags import (
     get_all_tags,
     get_tags_and_groups,
@@ -36,6 +37,8 @@ class TagsDialog(QDialog):
         super(TagsDialog, self).__init__()
         self.ui = Ui_tagsDialog()
         self.ui.setupUi(self)
+        if sys.platform == "darwin":
+            apply_macos_styling(self)
 
         self.model = model
 
@@ -486,6 +489,7 @@ class GroupDialog(QDialog):
         self.setWindowTitle("Edit Group")
         if sys.platform == "darwin":
             self.setWindowIcon(QIcon(":/images/icons/DeClutter_mac.png"))
+            apply_macos_styling(self)
         else:
             self.setWindowIcon(QIcon(":/images/icons/DeClutter.ico"))
         self.setLayout(vbox)

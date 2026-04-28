@@ -4,6 +4,7 @@ from PySide6.QtWidgets import QApplication, QDialog, QAbstractItemView, QMessage
 from PySide6.QtCore import QItemSelectionModel
 
 from src.ui.ui_condition_dialog import Ui_Condition
+from src.ui.macos_style import apply_macos_styling
 
 from declutter.store import load_settings
 from declutter.tags import get_all_tag_groups, get_tags_and_groups
@@ -16,6 +17,8 @@ class ConditionDialog(QDialog):
 
         self.ui = Ui_Condition()
         self.ui.setupUi(self)
+        if sys.platform == "darwin":
+            apply_macos_styling(self)
         self.condition = {}
 
         self.ui.tagsView.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -26,8 +29,7 @@ class ConditionDialog(QDialog):
 
         self.ui.tagsView.clicked.connect(self.tags_selection_changed)
 
-        # Populate file types into combo
-        self.ui.typeCombo.insertItems(0, list(load_settings()['file_types'].keys()))
+        # File types are populated in update_visibility() so they are always fresh
 
         # Initial visibility
         self.update_visibility()
@@ -75,9 +77,27 @@ class ConditionDialog(QDialog):
             state == "tags" and self.ui.tagsCombo.currentText() == "tags in group"
         )
 
-        self.ui.typeCombo.setVisible(state == "type")
-        self.ui.typeLabel.setVisible(state == "type")
-        self.ui.typeSwitchCombo.setVisible(state == "type")
+        is_type = state == "type"
+        self.ui.typeCombo.setVisible(is_type)
+        self.ui.typeLabel.setVisible(is_type)
+        self.ui.typeSwitchCombo.setVisible(is_type)
+
+        # Re-populate the file-type picker every time it becomes active so it
+        # always reflects the current list (handles fresh installs and types
+        # added after the dialog was first constructed).
+        if is_type:
+            current_selection = self.ui.typeCombo.currentText()
+            self.ui.typeCombo.blockSignals(True)
+            self.ui.typeCombo.clear()
+            file_type_names = list(load_settings()['file_types'].keys())
+            self.ui.typeCombo.addItems(file_type_names)
+            # Restore previous selection if still valid
+            idx = self.ui.typeCombo.findText(current_selection)
+            if idx >= 0:
+                self.ui.typeCombo.setCurrentIndex(idx)
+            self.ui.typeCombo.blockSignals(False)
+            self.ui.typeCombo.setEnabled(True)
+            self.ui.typeSwitchCombo.setEnabled(True)
 
         # Ensure tags sub-controls are in the right state
         self.update_tags_visibility()

@@ -15,7 +15,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractButton, QApplication, QComboBox, QDialog,
+from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QComboBox, QDialog,
     QDialogButtonBox, QGridLayout, QGroupBox, QHBoxLayout,
     QHeaderView, QLabel, QLineEdit, QPushButton,
     QRadioButton, QSizePolicy, QSpacerItem, QTabWidget,
@@ -104,6 +104,11 @@ class Ui_settingsDialog(object):
 
 
         self.verticalLayout_2.addLayout(self.horizontalLayout_4)
+
+        self.startAtLoginCheckBox = QCheckBox(self.mainTab)
+        self.startAtLoginCheckBox.setObjectName(u"startAtLoginCheckBox")
+
+        self.verticalLayout_2.addWidget(self.startAtLoginCheckBox)
 
         self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
@@ -203,6 +208,46 @@ class Ui_settingsDialog(object):
 
         self.tabWidget.addTab(self.fileTypesTab, "")
 
+        self.aboutTab = QWidget()
+        self.aboutTab.setObjectName(u"aboutTab")
+        self.aboutTabLayout = QVBoxLayout(self.aboutTab)
+        self.aboutTabLayout.setObjectName(u"aboutTabLayout")
+
+        self.aboutTopSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.aboutTabLayout.addItem(self.aboutTopSpacer)
+
+        self.aboutLogoLabel = QLabel(self.aboutTab)
+        self.aboutLogoLabel.setObjectName(u"aboutLogoLabel")
+        self.aboutLogoLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.aboutLogoLabel.setPixmap(QPixmap(u":/images/icons/DeClutter_mac.png").scaled(
+            QSize(80, 80), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        self.aboutTabLayout.addWidget(self.aboutLogoLabel)
+
+        self.aboutNameLabel = QLabel(self.aboutTab)
+        self.aboutNameLabel.setObjectName(u"aboutNameLabel")
+        font_about = QFont()
+        font_about.setPointSize(16)
+        font_about.setBold(True)
+        self.aboutNameLabel.setFont(font_about)
+        self.aboutNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.aboutTabLayout.addWidget(self.aboutNameLabel)
+
+        self.aboutVersionLabel = QLabel(self.aboutTab)
+        self.aboutVersionLabel.setObjectName(u"aboutVersionLabel")
+        self.aboutVersionLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.aboutTabLayout.addWidget(self.aboutVersionLabel)
+
+        self.aboutGithubLabel = QLabel(self.aboutTab)
+        self.aboutGithubLabel.setObjectName(u"aboutGithubLabel")
+        self.aboutGithubLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.aboutGithubLabel.setOpenExternalLinks(True)
+        self.aboutTabLayout.addWidget(self.aboutGithubLabel)
+
+        self.aboutBottomSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.aboutTabLayout.addItem(self.aboutBottomSpacer)
+
+        self.tabWidget.addTab(self.aboutTab, "")
+
         self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
 
         self.buttonBox = QDialogButtonBox(settingsDialog)
@@ -233,6 +278,7 @@ class Ui_settingsDialog(object):
         self.themeComboBox.setItemText(1, QCoreApplication.translate("settingsDialog", u"Light", None))
         self.themeComboBox.setItemText(2, QCoreApplication.translate("settingsDialog", u"Dark", None))
 
+        self.startAtLoginCheckBox.setText(QCoreApplication.translate("settingsDialog", u"Launch at startup", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.mainTab), QCoreApplication.translate("settingsDialog", u"Main", None))
         self.dateDefGroupBox.setTitle(QCoreApplication.translate("settingsDialog", u"Date definition", None))
         self.label.setText(QCoreApplication.translate("settingsDialog", u"Which date (from file metadata) should be used in rule conditions?", None))
@@ -249,5 +295,9 @@ class Ui_settingsDialog(object):
         self.addFileTypeButton.setText(QCoreApplication.translate("settingsDialog", u"Add New", None))
         self.label_5.setText(QCoreApplication.translate("settingsDialog", u"To remove a format leave its name empty", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.fileTypesTab), QCoreApplication.translate("settingsDialog", u"File Types", None))
+        self.aboutNameLabel.setText(QCoreApplication.translate("settingsDialog", u"DeClutter", None))
+        self.aboutGithubLabel.setText(QCoreApplication.translate("settingsDialog",
+            u'<a href="https://github.com/ZUBERKHAN034/declutter-extended">View on GitHub</a>', None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.aboutTab), QCoreApplication.translate("settingsDialog", u"About", None))
     # retranslateUi
 

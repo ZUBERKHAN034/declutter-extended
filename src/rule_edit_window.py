@@ -14,6 +14,7 @@ from PySide6.QtCore import QItemSelectionModel
 
 from src.ui.ui_list_dialog import Ui_listDialog
 from src.ui.ui_rule_edit_window import Ui_RuleEditWindow
+from src.ui.macos_style import apply_macos_styling
 from src.condition_dialog import ConditionDialog
 from src.tags_dialog import generate_tag_model
 
@@ -28,6 +29,8 @@ class RuleEditWindow(QDialog):
 
         self.ui = Ui_RuleEditWindow()
         self.ui.setupUi(self)
+        if sys.platform == "darwin":
+            apply_macos_styling(self)
 
         self.ui.buttonBox.accepted.connect(self.accept)
         self.ui.buttonBox.rejected.connect(self.reject)

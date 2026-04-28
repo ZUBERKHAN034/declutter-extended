@@ -1,10 +1,12 @@
 import sys
 from PySide6.QtWidgets import QDialog, QTableWidgetItem, QApplication, QStyleFactory, QMessageBox
 from PySide6.QtCore import Qt
+from declutter.config import VERSION
 from declutter.store import load_settings, save_settings
 from src.startup import is_enabled as startup_is_enabled, enable as startup_enable, disable as startup_disable
 
 from src.ui.ui_settings_dialog import Ui_settingsDialog
+from src.ui.macos_style import apply_macos_styling
 
 
 class SettingsDialog(QDialog):
@@ -12,11 +14,26 @@ class SettingsDialog(QDialog):
         super(SettingsDialog, self).__init__()
         self.ui = Ui_settingsDialog()
         self.ui.setupUi(self)
-        self.initialize()
+        self.ui.aboutVersionLabel.setText(f"Version {VERSION}")
+        if sys.platform == "darwin":
+            apply_macos_styling(self)
+        self._connect_signals()
+        self.refresh()
 
-    def initialize(self):
+    def _connect_signals(self):
+        """One-time signal connections — called only from __init__."""
+        self.ui.addFileTypeButton.clicked.connect(self.add_new_file_type)
+        self.ui.fileTypesTable.cellChanged.connect(
+            self.cell_changed, Qt.QueuedConnection)
+        self.ui.styleComboBox.textActivated.connect(self._update_theme_lock)
+
+    def refresh(self):
+        """Reload all widget values from current settings. Safe to call repeatedly."""
         self.settings = load_settings()
-        
+
+        # --- File types table ---
+        self.ui.fileTypesTable.blockSignals(True)
+        self.ui.fileTypesTable.setRowCount(0)
         i = 0
         self.format_fields = {}
         for f in self.settings['file_types']:
@@ -30,12 +47,9 @@ class SettingsDialog(QDialog):
 
             # TBD: This increment is inside the loop, which is correct, but the comment was misleading.
             i += 1
+        self.ui.fileTypesTable.blockSignals(False)
 
-        self.ui.addFileTypeButton.clicked.connect(self.add_new_file_type)
-        
-        self.ui.fileTypesTable.cellChanged.connect(
-            self.cell_changed, Qt.QueuedConnection)
-
+        # --- Style combo ---
         # Collect styles with exact keys returned by Qt
         style_keys = list(QStyleFactory.keys())  # exact casing from Qt
         # Keep current style (from settings) at top if present, else keep default order
@@ -70,9 +84,7 @@ class SettingsDialog(QDialog):
                 self.ui.themeComboBox.setCurrentIndex(t_idx)
             self.ui.themeComboBox.setEnabled(True)
 
-        # Keep reacting when user changes style
-        self.ui.styleComboBox.textActivated.connect(self._update_theme_lock)
-
+        # --- Date radio buttons ---
         rbs = [c for c in self.ui.dateDefGroupBox.children() if 'QRadioButton' in str(
             type(c))]  # TBD vN this is not very safe
         rbs[self.settings['date_type']].setChecked(True)

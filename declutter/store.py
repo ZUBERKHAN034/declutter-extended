@@ -8,6 +8,17 @@ from declutter.db import get_conn, ensure_db
 from declutter.config import VERSION
 
 
+# Default file types seeded on a fresh install.
+# Keys are display names; values are comma-separated glob patterns.
+DEFAULT_FILE_TYPES = {
+    "Audio":    "*.mp3, *.flac, *.aac, *.ogg, *.wav, *.wma, *.m4a, *.aiff",
+    "Video":    "*.mp4, *.mkv, *.avi, *.mov, *.wmv, *.flv, *.webm, *.m4v",
+    "Image":    "*.jpg, *.jpeg, *.png, *.gif, *.bmp, *.tiff, *.tif, *.webp, *.heic, *.svg",
+    "Document": "*.pdf, *.doc, *.docx, *.xls, *.xlsx, *.ppt, *.pptx, *.odt, *.ods, *.odp, *.txt, *.rtf, *.csv",
+    "Archive":  "*.zip, *.tar, *.gz, *.bz2, *.7z, *.rar, *.xz",
+}
+
+
 def init_store():
     ensure_db()
 
@@ -246,7 +257,17 @@ def load_settings(_: Optional[str] = None) -> Dict[str, Any]:
     init_store()
     s = get_all_settings()
     ftypes = list_file_types()
-    s["file_types"] = {ft["name"]: ft["patterns"] for ft in ftypes}
+    if ftypes:
+        s["file_types"] = {ft["name"]: ft["patterns"] for ft in ftypes}
+    else:
+        # Nothing in DB yet (fresh install before user opens Settings) —
+        # seed the defaults now so the rest of the app always sees them.
+        items = [
+            {"name": name, "patterns": pat}
+            for name, pat in DEFAULT_FILE_TYPES.items()
+        ]
+        replace_file_types(items)
+        s["file_types"] = dict(DEFAULT_FILE_TYPES)
     s["rules"] = list_rules()
     s["recent_folders"] = list_recent_folders()
     return s
