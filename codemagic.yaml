@@ -36,12 +36,14 @@ workflows:
           python -m pip install -r requirements.txt
           python -m pip install pyinstaller Pillow
 
-      - name: Build the application (onedir, windowed, .ico auto-convert)
+      - name: Build the application (onedir, windowed, .icns for macOS)
         script: |
           set -ex
           source venv/bin/activate
           ICON_ARG=""
-          if [ -f assets/DeClutter.ico ]; then
+          if [ -f assets/DeClutter.icns ]; then
+            ICON_ARG="--icon assets/DeClutter.icns"
+          elif [ -f assets/DeClutter.ico ]; then
             ICON_ARG="--icon assets/DeClutter.ico"
           else
             ICON_ARG="--icon NONE"

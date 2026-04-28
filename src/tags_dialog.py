@@ -484,7 +484,10 @@ class GroupDialog(QDialog):
         vbox.addWidget(self.buttonBox)
 
         self.setWindowTitle("Edit Group")
-        self.setWindowIcon(QIcon(":/images/icons/DeClutter.ico"))
+        if sys.platform == "darwin":
+            self.setWindowIcon(QIcon(":/images/icons/DeClutter_mac.png"))
+        else:
+            self.setWindowIcon(QIcon(":/images/icons/DeClutter.ico"))
         self.setLayout(vbox)
 
     def accept(self):

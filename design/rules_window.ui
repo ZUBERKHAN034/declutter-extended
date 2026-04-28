@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>DeClutter (beta): Rules</string>
+   <string>DeClutter: Rules</string>
   </property>
   <property name="windowIcon">
    <iconset>

@@ -12,7 +12,8 @@ pip install -r requirements.txt
 pip install pyinstaller
 
 # Build the application
-pyinstaller --name DeClutter --windowed --onefile --icon=assets/DeClutter.ico src/DeClutter.py
+# Use the macOS-native .icns asset (with proper Dock padding) instead of .ico
+pyinstaller --name DeClutter --windowed --onefile --icon=assets/DeClutter.icns src/DeClutter.py
 
 # Create a DMG
 mkdir -p build/macos

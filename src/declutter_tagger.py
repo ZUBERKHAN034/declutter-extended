@@ -71,8 +71,11 @@ class TaggerWindow(QMainWindow):
         super(TaggerWindow, self).__init__(parent)
         self.ui = Ui_taggerWindow()
         self.ui.setupUi(self)
-        self.setWindowIcon(QIcon(":/images/icons/DeClutter.ico"))
-        
+        if sys.platform == "darwin":
+            self.setWindowIcon(QIcon(":/images/icons/DeClutter_mac.png"))
+        else:
+            self.setWindowIcon(QIcon(":/images/icons/DeClutter.ico"))
+
         self.settings = load_settings()
         # Restore geometry
         try:
@@ -185,6 +188,24 @@ class TaggerWindow(QMainWindow):
 
         # If a file is selected, paste into its parent directory
         return os.path.normpath(path if os.path.isdir(path) else os.path.dirname(path))
+
+    def showEvent(self, e):
+        if sys.platform == "darwin":
+            try:
+                from AppKit import NSApplication, NSApplicationActivationPolicyRegular
+                NSApplication.sharedApplication().setActivationPolicy_(NSApplicationActivationPolicyRegular)
+            except Exception:
+                pass
+        super().showEvent(e)
+
+    def hideEvent(self, e):
+        super().hideEvent(e)
+        if sys.platform == "darwin":
+            try:
+                from AppKit import NSApplication, NSApplicationActivationPolicyAccessory
+                NSApplication.sharedApplication().setActivationPolicy_(NSApplicationActivationPolicyAccessory)
+            except Exception:
+                pass
 
     def new_window(self):
         """Opens a new TaggerWindow instance."""

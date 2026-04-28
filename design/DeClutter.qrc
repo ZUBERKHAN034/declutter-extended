@@ -8,6 +8,7 @@
     <file alias="tags.svg">../assets/icons/tags.svg</file>
     <file alias="brush.svg">../assets/icons/brush.svg</file>
     <file alias="DeClutter.ico">../assets/DeClutter.ico</file>  <!-- Note: .ico may need separate handling if not SVG -->
+    <file alias="DeClutter_mac.png">../assets/DeClutter.iconset/icon_128x128.png</file>
     <file alias="arrow-thin-down.svg">../assets/icons/arrow-thin-down.svg</file>
     <file alias="arrow-thin-up.svg">../assets/icons/arrow-thin-up.svg</file>
     <file alias="document-new.svg">../assets/icons/document-new.svg</file>

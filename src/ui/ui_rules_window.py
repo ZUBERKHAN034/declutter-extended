@@ -204,7 +204,7 @@ class Ui_rulesWindow(object):
     # setupUi
 
     def retranslateUi(self, rulesWindow):
-        rulesWindow.setWindowTitle(QCoreApplication.translate("rulesWindow", u"DeClutter (beta): Rules", None))
+        rulesWindow.setWindowTitle(QCoreApplication.translate("rulesWindow", u"DeClutter: Rules", None))
         self.actionAdd.setText(QCoreApplication.translate("rulesWindow", u"Add", None))
 #if QT_CONFIG(tooltip)
         self.actionAdd.setToolTip(QCoreApplication.translate("rulesWindow", u"Add", None))

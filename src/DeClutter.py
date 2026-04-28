@@ -1,3 +1,4 @@
+import os
 import sys
 from copy import deepcopy
 from time import time
@@ -70,7 +71,10 @@ class RulesWindow(QMainWindow):
         self.ui.rulesTable.cellDoubleClicked.connect(self.edit_rule)
         self.ui.deleteRule.clicked.connect(self.delete_rule)
         self.ui.applyRule.clicked.connect(self.apply_rule)
-        self.setWindowIcon(QIcon(":/images/icons/DeClutter.ico"))
+        if sys.platform == "darwin":
+            self.setWindowIcon(QIcon(":/images/icons/DeClutter_mac.png"))
+        else:
+            self.setWindowIcon(QIcon(":/images/icons/DeClutter.ico"))
         self.trayIcon.messageClicked.connect(self.message_clicked)
         self.trayIcon.activated.connect(self.tray_activated)
         self.trayIcon.setToolTip(
@@ -227,8 +231,11 @@ class RulesWindow(QMainWindow):
 
     def show_settings(self):
         """Shows the settings dialog."""
+        _set_macos_activation_policy(False)
         settings_window = SettingsDialog()
-        if settings_window.exec():
+        result = settings_window.exec()
+        _set_macos_activation_policy(True)
+        if result:
             self.settings = load_settings()
             self.trayIcon.setToolTip(
                 "DeClutter runs every "
@@ -433,7 +440,10 @@ class RulesWindow(QMainWindow):
 
         self.trayIcon = QSystemTrayIcon(self)
         self.trayIcon.setContextMenu(self.trayIconMenu)
-        self.trayIcon.setIcon(QIcon(":/images/icons/DeClutter.ico"))
+        if sys.platform == "darwin":
+            self.trayIcon.setIcon(QIcon(":/images/icons/DeClutter_mac.png"))
+        else:
+            self.trayIcon.setIcon(QIcon(":/images/icons/DeClutter.ico"))
         self.trayIcon.setVisible(True)
         self.trayIcon.show()
 
@@ -458,6 +468,7 @@ class RulesWindow(QMainWindow):
 
     def showEvent(self, e):
         # Ensure a user-shown window will be shown next startup
+        _set_macos_activation_policy(False)
         try:
             s = load_settings()
             s["rules_window_visible_on_exit"] = True
@@ -485,6 +496,7 @@ class RulesWindow(QMainWindow):
         except Exception:
             pass
         super().hideEvent(e)
+        _set_macos_activation_policy(True)
 
     def closeEvent(self, event):
         """
@@ -735,6 +747,20 @@ class new_version_checker(QThread):
             logging.exception(f"exception {e}")
 
 
+def _set_macos_activation_policy(accessory: bool):
+    """Switch NSApplication activation policy on macOS only.
+    accessory=True hides the Dock icon; accessory=False shows it.
+    """
+    if sys.platform != "darwin":
+        return
+    try:
+        from AppKit import NSApplication, NSApplicationActivationPolicyAccessory, NSApplicationActivationPolicyRegular
+        ns_app = NSApplication.sharedApplication()
+        policy = NSApplicationActivationPolicyAccessory if accessory else NSApplicationActivationPolicyRegular
+        ns_app.setActivationPolicy_(policy)
+    except Exception:
+        pass
+
 def main():
     """Main function to run the application."""
     app = QApplication(sys.argv)
@@ -743,15 +769,32 @@ def main():
 
     init_store()
     logging.info("DeClutter started")
-    app.setWindowIcon(QIcon(":/images/icons/DeClutter.ico"))
+    if sys.platform == "darwin":
+        app.setWindowIcon(QIcon(":/images/icons/DeClutter_mac.png"))
+        # Override the Dock icon via NSApplication so the Python rocket
+        # does not appear when running from source (non-bundle).
+        try:
+            from AppKit import NSApplication, NSImage
+            ns_app = NSApplication.sharedApplication()
+            icon_path = os.path.join(os.path.dirname(__file__), "..", "assets", "DeClutter.icns")
+            icon_path = os.path.normpath(icon_path)
+            image = NSImage.alloc().initWithContentsOfFile_(icon_path)
+            if image:
+                ns_app.setApplicationIconImage_(image)
+        except Exception:
+            pass
+    else:
+        app.setWindowIcon(QIcon(":/images/icons/DeClutter.ico"))
 
     window = RulesWindow()
     # Decide visibility based on persisted flag
     settings = load_settings()
     if settings["rules_window_visible_on_exit"]:
         window.show()
+    else:
+        _set_macos_activation_policy(True)
 
-    window.setWindowTitle("DeClutter (beta) " + VERSION)
+    window.setWindowTitle("DeClutter " + VERSION)
     sys.exit(app.exec())
 
 
