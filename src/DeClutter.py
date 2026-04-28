@@ -5,6 +5,24 @@ from time import time
 import logging
 import webbrowser
 import requests
+
+# --- macOS single-instance lock ---------------------------------------------------
+_lock_handle = None  # kept alive to hold the file lock
+
+def _ensure_single_instance():
+    """On macOS, acquire an exclusive file lock so only one instance runs.
+    If another instance already holds the lock, silently exit."""
+    if sys.platform != "darwin":
+        return
+    import fcntl
+    global _lock_handle
+    lock_path = os.path.expanduser("~/.declutter.lock")
+    _lock_handle = open(lock_path, "w")
+    try:
+        fcntl.flock(_lock_handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        # Another instance is already running — exit silently
+        sys.exit(0)
 from PySide6.QtGui import QIcon, QAction, QPalette, QColor, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
@@ -46,12 +64,8 @@ class RulesWindow(QMainWindow):
         self.restoreAction = QAction()
         self.quitAction = QAction()
 
-        self.trayIcon = QSystemTrayIcon()
-        self.trayIconMenu = QMenu()
-
         self.create_actions()
         self.create_tray_icon()
-        self.trayIcon.show()
         self.settings = load_settings()
 
         # Restore geometry
@@ -452,6 +466,10 @@ class RulesWindow(QMainWindow):
 
     def create_tray_icon(self):
         """Creates the system tray icon and its context menu."""
+        if getattr(self, '_tray_initialized', False):
+            return
+        self._tray_initialized = True
+
         self.trayIconMenu = QMenu(self)
         self.trayIconMenu.addAction(self.showRulesWindow)
         self.trayIconMenu.addAction(self.showTaggerWindow)
@@ -784,6 +802,8 @@ def _set_macos_activation_policy(accessory: bool):
 
 def main():
     """Main function to run the application."""
+    _ensure_single_instance()
+
     app = QApplication(sys.argv)
     QApplication.setQuitOnLastWindowClosed(False)
     from declutter.store import init_store
@@ -808,6 +828,14 @@ def main():
         app.setWindowIcon(QIcon(":/images/icons/DeClutter.ico"))
 
     window = RulesWindow()
+
+    # Clean up tray icon on quit so a stale icon never lingers
+    def _cleanup_tray():
+        if hasattr(window, 'trayIcon') and window.trayIcon is not None:
+            window.trayIcon.hide()
+            window.trayIcon.deleteLater()
+    app.aboutToQuit.connect(_cleanup_tray)
+
     # Decide visibility based on persisted flag
     settings = load_settings()
     if settings["rules_window_visible_on_exit"]:
