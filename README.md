@@ -11,7 +11,7 @@ DeClutter is a macOS desktop application that automatically organizes your files
     *   **Ignore newest:** Optionally skip the N most recent files per folder.
 *   **Background Service** — Rules execute on a timer (default every 5 minutes). A system-tray icon provides quick access to the rules window and settings.
 *   **Launch at Startup** — Optionally start DeClutter when you log in.
-*   **Native macOS Look** — Automatically follows system dark / light mode with a translucent, vibrancy-enabled UI.
+*   **Native macOS Look** — Automatically follows system dark / light mode.
 
 ## Use Cases
 
