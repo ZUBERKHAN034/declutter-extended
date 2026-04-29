@@ -12,3 +12,4 @@ build/
 sandbox/
 ui/icons/
 .vscode
+.DS_Store
