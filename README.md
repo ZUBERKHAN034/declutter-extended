@@ -1,27 +1,23 @@
 # DeClutter
 
-DeClutter is a desktop application built on PySide6 that helps you manage and organize your files. It provides a set of tools to automate file processing and a simple file manager with tagging capabilities.
+DeClutter is a macOS desktop application that automatically organizes your files using customizable rules. It runs quietly in the background, processing files on a schedule so you never have to tidy up manually.
 
 ## Features
 
-*   **Automated File Processing:** Create rules to automatically process your files.
-    *   **Sources:** Specify which folders or tagged files to process.
-    *   **Conditions:** Filter files based on name, size, date, tags, and type.
-    *   **Actions:** Delete, trash, copy, move, rename, and tag files.
-*   **File Tagger:** A simple file manager with tagging capabilities.
-    *   **Tag files and folders:** Organize your files with user-defined tags.
-    *   **Tag groups:** Create groups of tags where only one tag from the group can be applied to a file.
-    *   **Filter by tags:** Easily find files with specific tags.
-    *   **Media preview:** Preview audio, video, and image files directly in the tagger.
-*   **Drag and Drop:** Drag and drop files between DeClutter and Finder.
+*   **Rule-Based Automation** — Create rules that run automatically on a configurable interval.
+    *   **Sources:** One or more folders to watch, with optional recursive scanning.
+    *   **Conditions:** Filter files by name (glob patterns), date (age), size, or file type. Combine conditions with any / all / none logic.
+    *   **Actions:** Move, Copy, Delete, Send to Trash, Rename, or Move to subfolder. Supports token-based renaming (`<filename>`, `<folder>`, `<replace:…>`), folder-structure preservation, and configurable duplicate handling (increment name or overwrite).
+    *   **Ignore newest:** Optionally skip the N most recent files per folder.
+*   **Background Service** — Rules execute on a timer (default every 5 minutes). A system-tray icon provides quick access to the rules window and settings.
+*   **Launch at Startup** — Optionally start DeClutter when you log in.
+*   **Native macOS Look** — Automatically follows system dark / light mode with a translucent, vibrancy-enabled UI.
 
 ## Use Cases
 
-*   Automatically delete old files in your "Downloads" folder.
-*   Organize your "Downloads" folder by automatically moving files to subfolders based on their type, date, or other criteria.
-*   Set an "expiration time" for files using tags, and DeClutter will automatically delete them when they expire.
-*   If you work on a project that saves new versions with incremental numbers (like FL Studio or Reaper), you can automatically move older versions of project files to a subfolder, keeping only the N most recent versions.
-*   Quickly navigate your files using tags, which can be more intuitive than navigating a folder tree.
+*   Automatically delete old files in your Downloads folder.
+*   Organize Downloads by moving files into subfolders based on type, date, or other criteria.
+*   Keep only the N most recent project versions (e.g. FL Studio or Reaper saves) and archive the rest into a subfolder.
 
 ## Technical Details
 
@@ -35,4 +31,4 @@ Contributions are welcome! Please feel free to submit a pull request or open an 
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
