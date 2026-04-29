@@ -14,8 +14,6 @@ DB_FILE = os.path.join(APP_FOLDER, "DeClutter.db")
 # Legacy JSON settings file; used only by the migration (do not write to it anymore)
 SETTINGS_FILE = os.path.join(APP_FOLDER, "settings.json")
 
-ALL_TAGGED_TEXT = "All tagged files and folders"
-
 logging.basicConfig(
     level=logging.DEBUG,
     handlers=[logging.FileHandler(filename=LOG_FILE, encoding="utf-8", mode="a+")],

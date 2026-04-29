@@ -1,6 +1,5 @@
-import sys
-from PySide6.QtWidgets import QDialog, QTableWidgetItem, QApplication, QStyleFactory, QMessageBox
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QDialog, QTableWidgetItem, QApplication, QMessageBox
+from PySide6.QtCore import Qt, QSize
 from declutter.config import VERSION
 from declutter.store import load_settings, save_settings
 from src.startup import is_enabled as startup_is_enabled, enable as startup_enable, disable as startup_disable
@@ -15,8 +14,12 @@ class SettingsDialog(QDialog):
         self.ui = Ui_settingsDialog()
         self.ui.setupUi(self)
         self.ui.aboutVersionLabel.setText(f"Version {VERSION}")
-        if sys.platform == "darwin":
-            apply_macos_styling(self)
+        from PySide6.QtGui import QPixmap
+        self.ui.aboutLogoLabel.setPixmap(
+            QPixmap(u":/images/icons/DeClutter_mac.png").scaled(
+                QSize(80, 80), Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation))
+        apply_macos_styling(self)
         self._connect_signals()
         self.refresh()
 
@@ -25,7 +28,6 @@ class SettingsDialog(QDialog):
         self.ui.addFileTypeButton.clicked.connect(self.add_new_file_type)
         self.ui.fileTypesTable.cellChanged.connect(
             self.cell_changed, Qt.QueuedConnection)
-        self.ui.styleComboBox.textActivated.connect(self._update_theme_lock)
 
     def refresh(self):
         """Reload all widget values from current settings. Safe to call repeatedly."""
@@ -49,41 +51,6 @@ class SettingsDialog(QDialog):
             i += 1
         self.ui.fileTypesTable.blockSignals(False)
 
-        # --- Style combo ---
-        # Collect styles with exact keys returned by Qt
-        style_keys = list(QStyleFactory.keys())  # exact casing from Qt
-        # Keep current style (from settings) at top if present, else keep default order
-        self.ui.styleComboBox.clear()
-        if self.settings.get('style') in style_keys:
-            # Put saved style at index 0 for convenience
-            styles_ordered = [self.settings['style']] + [s for s in style_keys if s != self.settings['style']]
-        else:
-            styles_ordered = style_keys
-        self.ui.styleComboBox.addItems(styles_ordered)
-
-        # Preselect saved style exactly, if present
-        if self.settings.get('style') in style_keys:
-            idx = self.ui.styleComboBox.findText(self.settings['style'])
-            if idx >= 0:
-                self.ui.styleComboBox.setCurrentIndex(idx)
-
-        # Apply the theme lock logic once after style selection
-        self._update_theme_lock(self.ui.styleComboBox.currentText())
-
-        # Initialize theme combo from saved settings
-        saved_theme = self.settings.get("theme", "System")
-        if self.ui.styleComboBox.currentText().lower() == "windowsvista":
-            # UI lock: force Light for windowsvista
-            t_idx = self.ui.themeComboBox.findText("Light")
-            if t_idx >= 0:
-                self.ui.themeComboBox.setCurrentIndex(t_idx)
-            self.ui.themeComboBox.setEnabled(False)
-        else:
-            t_idx = self.ui.themeComboBox.findText(saved_theme)
-            if t_idx >= 0:
-                self.ui.themeComboBox.setCurrentIndex(t_idx)
-            self.ui.themeComboBox.setEnabled(True)
-
         # --- Date radio buttons ---
         rbs = [c for c in self.ui.dateDefGroupBox.children() if 'QRadioButton' in str(
             type(c))]  # TBD vN this is not very safe
@@ -91,26 +58,10 @@ class SettingsDialog(QDialog):
         self.ui.ruleExecIntervalEdit.setText(
             str(self.settings['rule_exec_interval']/60))
         
-        # Startup checkbox handling:
-        # - Windows: hide it (managed by installer/OS).
-        # - macOS: show and bind actual state.
-        if sys.platform.startswith("win"):
-            self.ui.startAtLoginCheckBox.setVisible(False)
-        else:
-            try:
-                self.ui.startAtLoginCheckBox.setChecked(startup_is_enabled())
-            except Exception:
-                self.ui.startAtLoginCheckBox.setChecked(False)
-        
-
-    def _update_theme_lock(self, style_name: str):
-        is_vista = style_name.lower() == "windowsvista"
-        self.ui.themeComboBox.setEnabled(not is_vista)
-        if is_vista:
-            # Force Light in UI for windowsvista
-            idx = self.ui.themeComboBox.findText("Light")
-            if idx >= 0:
-                self.ui.themeComboBox.setCurrentIndex(idx)
+        try:
+            self.ui.startAtLoginCheckBox.setChecked(startup_is_enabled())
+        except Exception:
+            self.ui.startAtLoginCheckBox.setChecked(False)
 
     def cell_changed(self, row, col):
         if col == 0:
@@ -125,7 +76,6 @@ class SettingsDialog(QDialog):
                     self.ui.fileTypesTable.item(row, 0))
                 return False
             if row < len(settings['file_types']):  # it's not a new format
-                # TBD this is unsafe and will cause bugs on non-Win systems
                 prev_value = list(settings['file_types'].keys())[row]
                 if new_value != prev_value and new_value:
                     
@@ -182,12 +132,6 @@ class SettingsDialog(QDialog):
                 self.settings['date_type'] = rbs.index(c)
         self.settings['rule_exec_interval'] = float(
             self.ui.ruleExecIntervalEdit.text())*60
-        self.settings['style'] = self.ui.styleComboBox.currentText()
-        if self.settings['style'].lower() == "windowsvista":
-            self.settings['theme'] = "Light"
-        else:
-            self.settings['theme'] = self.ui.themeComboBox.currentText()
-
         self.settings['file_types'] = {}
         # TBD add validation
         for i in range(self.ui.fileTypesTable.rowCount()):
@@ -195,25 +139,21 @@ class SettingsDialog(QDialog):
                 self.settings['file_types'][self.ui.fileTypesTable.item(
                     i, 0).text()] = self.ui.fileTypesTable.item(i, 1).text()
 
-        if not sys.platform.startswith("win"):
-            try:
-                want = self.ui.startAtLoginCheckBox.isChecked()
-                if want:
-                    startup_enable()
-                else:
-                    startup_disable()
-            except Exception:
-                pass
+        try:
+            want = self.ui.startAtLoginCheckBox.isChecked()
+            if want:
+                startup_enable()
+            else:
+                startup_disable()
+        except Exception:
+            pass
 
         save_settings(self.settings)
         super(SettingsDialog, self).accept()
 
-    def change_style(self, style_name):
-        QApplication.setStyle(QStyleFactory.create(style_name))
-
-
 
 if __name__ == "__main__":
+    import sys
     app = QApplication(sys.argv)
     window = SettingsDialog()
     

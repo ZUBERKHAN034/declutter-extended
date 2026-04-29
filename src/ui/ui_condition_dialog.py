@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'condition_dialog.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.1
+## Created by: Qt User Interface Compiler version 6.11.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -16,11 +16,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractButton, QApplication, QComboBox, QDialog,
-    QDialogButtonBox, QHBoxLayout, QHeaderView, QLabel,
-    QLayout, QLineEdit, QSizePolicy, QSpacerItem,
-    QVBoxLayout, QWidget)
-
-from ..tag_tree import TagTree
+    QDialogButtonBox, QHBoxLayout, QLabel, QLayout,
+    QLineEdit, QSizePolicy, QSpacerItem, QVBoxLayout,
+    QWidget)
 from . import DeClutter_rc
 
 class Ui_Condition(object):
@@ -35,7 +33,7 @@ class Ui_Condition(object):
         sizePolicy.setHeightForWidth(Condition.sizePolicy().hasHeightForWidth())
         Condition.setSizePolicy(sizePolicy)
         icon = QIcon()
-        icon.addFile(u":/images/icons/DeClutter.ico", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon.addFile(u":/images/icons/DeClutter_mac.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         Condition.setWindowIcon(icon)
         self.horizontalLayout = QHBoxLayout(Condition)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
@@ -55,7 +53,6 @@ class Ui_Condition(object):
         self.horizontalLayout_4.addWidget(self.label)
 
         self.conditionCombo = QComboBox(Condition)
-        self.conditionCombo.addItem("")
         self.conditionCombo.addItem("")
         self.conditionCombo.addItem("")
         self.conditionCombo.addItem("")
@@ -179,61 +176,6 @@ class Ui_Condition(object):
 
         self.verticalLayout.addLayout(self.sizeLayout)
 
-        self.horizontalLayout_7 = QHBoxLayout()
-        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
-        self.tagLabel = QLabel(Condition)
-        self.tagLabel.setObjectName(u"tagLabel")
-
-        self.horizontalLayout_7.addWidget(self.tagLabel)
-
-        self.tagsCombo = QComboBox(Condition)
-        self.tagsCombo.addItem("")
-        self.tagsCombo.addItem("")
-        self.tagsCombo.addItem("")
-        self.tagsCombo.addItem("")
-        self.tagsCombo.addItem("")
-        self.tagsCombo.addItem("")
-        self.tagsCombo.setObjectName(u"tagsCombo")
-
-        self.horizontalLayout_7.addWidget(self.tagsCombo)
-
-        self.tagLabel2 = QLabel(Condition)
-        self.tagLabel2.setObjectName(u"tagLabel2")
-
-        self.horizontalLayout_7.addWidget(self.tagLabel2)
-
-        self.tagGroupsCombo = QComboBox(Condition)
-        self.tagGroupsCombo.setObjectName(u"tagGroupsCombo")
-
-        self.horizontalLayout_7.addWidget(self.tagGroupsCombo)
-
-        self.horizontalSpacer_3 = QSpacerItem(40, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_7.addItem(self.horizontalSpacer_3)
-
-
-        self.verticalLayout.addLayout(self.horizontalLayout_7)
-
-        self.horizontalLayout_8 = QHBoxLayout()
-        self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
-        self.tagsView = TagTree(Condition)
-        self.tagsView.setObjectName(u"tagsView")
-        self.tagsView.setStyleSheet(u"")
-
-        self.horizontalLayout_8.addWidget(self.tagsView)
-
-        self.horizontalSpacer_4 = QSpacerItem(40, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_8.addItem(self.horizontalSpacer_4)
-
-
-        self.verticalLayout.addLayout(self.horizontalLayout_8)
-
-        self.selectedTagsLabel = QLabel(Condition)
-        self.selectedTagsLabel.setObjectName(u"selectedTagsLabel")
-
-        self.verticalLayout.addWidget(self.selectedTagsLabel)
-
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.typeLabel = QLabel(Condition)
@@ -245,6 +187,9 @@ class Ui_Condition(object):
         self.typeSwitchCombo.addItem("")
         self.typeSwitchCombo.addItem("")
         self.typeSwitchCombo.setObjectName(u"typeSwitchCombo")
+        self.typeSwitchCombo.setMinimumSize(QSize(60, 0))
+        self.typeSwitchCombo.setMaximumSize(QSize(50, 16777215))
+        self.typeSwitchCombo.setBaseSize(QSize(0, 0))
         self.typeSwitchCombo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
         self.typeSwitchCombo.setMinimumContentsLength(5)
 
@@ -273,7 +218,6 @@ class Ui_Condition(object):
 
         self.verticalLayout.addWidget(self.buttonBox)
 
-        self.verticalLayout.setStretch(10, 2)
 
         self.horizontalLayout.addLayout(self.verticalLayout)
 
@@ -291,8 +235,7 @@ class Ui_Condition(object):
         self.conditionCombo.setItemText(0, QCoreApplication.translate("Condition", u"name", None))
         self.conditionCombo.setItemText(1, QCoreApplication.translate("Condition", u"date", None))
         self.conditionCombo.setItemText(2, QCoreApplication.translate("Condition", u"size", None))
-        self.conditionCombo.setItemText(3, QCoreApplication.translate("Condition", u"tags", None))
-        self.conditionCombo.setItemText(4, QCoreApplication.translate("Condition", u"type", None))
+        self.conditionCombo.setItemText(3, QCoreApplication.translate("Condition", u"type", None))
 
         self.nameLabel.setText(QCoreApplication.translate("Condition", u"File name", None))
         self.nameCombo.setItemText(0, QCoreApplication.translate("Condition", u"matches", None))
@@ -320,16 +263,6 @@ class Ui_Condition(object):
         self.sizeUnitsCombo.setItemText(3, QCoreApplication.translate("Condition", u"GB", None))
         self.sizeUnitsCombo.setItemText(4, QCoreApplication.translate("Condition", u"TB", None))
 
-        self.tagLabel.setText(QCoreApplication.translate("Condition", u"File has", None))
-        self.tagsCombo.setItemText(0, QCoreApplication.translate("Condition", u"any", None))
-        self.tagsCombo.setItemText(1, QCoreApplication.translate("Condition", u"all", None))
-        self.tagsCombo.setItemText(2, QCoreApplication.translate("Condition", u"none", None))
-        self.tagsCombo.setItemText(3, QCoreApplication.translate("Condition", u"no tags", None))
-        self.tagsCombo.setItemText(4, QCoreApplication.translate("Condition", u"any tags", None))
-        self.tagsCombo.setItemText(5, QCoreApplication.translate("Condition", u"tags in group", None))
-
-        self.tagLabel2.setText(QCoreApplication.translate("Condition", u"of selected tags:", None))
-        self.selectedTagsLabel.setText(QCoreApplication.translate("Condition", u"Selected tags:", None))
         self.typeLabel.setText(QCoreApplication.translate("Condition", u"File type ", None))
         self.typeSwitchCombo.setItemText(0, QCoreApplication.translate("Condition", u"is", None))
         self.typeSwitchCombo.setItemText(1, QCoreApplication.translate("Condition", u"is not", None))

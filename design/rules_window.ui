@@ -21,7 +21,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>:/images/DeClutter.ico</normaloff>:/images/DeClutter.ico</iconset>
+    <normaloff>:/images/icons/DeClutter_mac.png</normaloff>:/images/icons/DeClutter_mac.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -149,7 +149,6 @@
      <string>Options</string>
     </property>
     <addaction name="actionSettings"/>
-    <addaction name="actionManage_Tags"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -186,16 +185,14 @@
    <addaction name="separator"/>
    <addaction name="actionMove_up"/>
    <addaction name="actionMove_down"/>
-   <addaction name="separator"/>
-   <addaction name="actionOpen_Tagger"/>
   </widget>
   <action name="actionAdd">
    <property name="checkable">
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset theme="QIcon::ThemeIcon::DocumentPageSetup" resource="DeClutter.qrc">
-     <normaloff>:/images/icons/document-new.svg</normaloff>:/images/icons/document-new.svg</iconset>
+    <iconset resource="DeClutter.qrc">
+     <normaloff>:/images/icons/plus.svg</normaloff>:/images/icons/plus.svg</iconset>
    </property>
    <property name="text">
     <string>Add</string>
@@ -294,20 +291,6 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
-   </property>
-  </action>
-  <action name="actionManage_Tags">
-   <property name="text">
-    <string>Manage Tags</string>
-   </property>
-  </action>
-  <action name="actionOpen_Tagger">
-   <property name="icon">
-    <iconset theme="system-file-manager" resource="DeClutter.qrc">
-     <normaloff>:/images/icons/tags.svg</normaloff>:/images/icons/tags.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Open Tagger</string>
    </property>
   </action>
  </widget>

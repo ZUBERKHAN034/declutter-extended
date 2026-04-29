@@ -1,26 +1,20 @@
 import sys
 from os.path import normpath
 
-from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import (
     QApplication,
     QDialog,
     QFileDialog,
-    QAbstractItemView,
     QMessageBox,
     QListWidgetItem,
 )
-from PySide6.QtCore import QItemSelectionModel
 
 from src.ui.ui_list_dialog import Ui_listDialog
 from src.ui.ui_rule_edit_window import Ui_RuleEditWindow
 from src.ui.macos_style import apply_macos_styling
 from src.condition_dialog import ConditionDialog
-from src.tags_dialog import generate_tag_model
 
 from declutter.rules import get_files_affected_by_rule
-from declutter.tags import get_tags_and_groups
-from declutter.config import ALL_TAGGED_TEXT
 
 
 class RuleEditWindow(QDialog):
@@ -29,8 +23,7 @@ class RuleEditWindow(QDialog):
 
         self.ui = Ui_RuleEditWindow()
         self.ui.setupUi(self)
-        if sys.platform == "darwin":
-            apply_macos_styling(self)
+        apply_macos_styling(self)
 
         self.ui.buttonBox.accepted.connect(self.accept)
         self.ui.buttonBox.rejected.connect(self.reject)
@@ -52,16 +45,6 @@ class RuleEditWindow(QDialog):
         self.ui.conditionRemoveButton.clicked.connect(self.delete_condition)
         self.ui.conditionListWidget.itemDoubleClicked.connect(self.edit_condition)
 
-        # Tags view (for Tag/Remove tags actions and for displaying selected tags in UI)
-        self.ui.tagsView.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.ui.allTaggedAddButton.clicked.connect(self.add_all_tagged)
-
-        self.tag_model = QStandardItemModel()
-        generate_tag_model(self.tag_model, get_tags_and_groups(), False)
-        self.ui.tagsView.setModel(self.tag_model)
-        self.ui.tagsView.expandAll()
-        self.ui.tagsView.clicked.connect(self.tags_selection_changed)
-
         # Advanced
         self.ui.advancedButton.clicked.connect(self.show_advanced)
 
@@ -75,13 +58,6 @@ class RuleEditWindow(QDialog):
 
         self.ui.ruleNameEdit.setFocus()
         self.action_change()
-
-    def tags_selection_changed(self):
-        selected_tags = [
-            self.ui.tagsView.model().itemFromIndex(index).text()
-            for index in self.ui.tagsView.selectedIndexes()
-        ]
-        self.ui.selectedTagsLabel.setText('Selected tags: ' + ', '.join(selected_tags))
 
     def show_advanced(self):
         self.ui.line.setVisible(True)
@@ -138,18 +114,7 @@ class RuleEditWindow(QDialog):
         for c in self.rule.get('conditions', []):
             ctype = c.get('type')
 
-            if ctype == 'tags' and c.get('tag_switch') != 'tags in group':
-                tag_switch = c.get('tag_switch', '')
-                if tag_switch in ('no tags', 'any tags'):
-                    desc = 'Has ' + tag_switch
-                else:
-                    desc = 'Has ' + tag_switch + ' of these tags: ' + ', '.join(c.get('tags', []))
-                conds.append(desc)
-
-            elif ctype == 'tags' and c.get('tag_switch') == 'tags in group':
-                conds.append('Has tags in group: ' + c.get('tag_group', ''))
-
-            elif ctype == 'date':
+            if ctype == 'date':
                 conds.append('Age is ' + c.get('age_switch', '') + ' ' + str(c.get('age', '')) + ' ' + c.get('age_units', ''))
 
             elif ctype == 'name':
@@ -188,21 +153,16 @@ class RuleEditWindow(QDialog):
             self.rule['conditions'] = []
         if 'folders' not in self.rule:
             self.rule['folders'] = []
-        if 'tags' not in self.rule:
-            self.rule['tags'] = []
-
         self.rule['name'] = self.ui.ruleNameEdit.text()
         self.rule['enabled'] = self.ui.enabledCheckBox.isChecked()
         self.rule['recursive'] = self.ui.recursiveCheckBox.isChecked()
         self.rule['condition_switch'] = self.ui.conditionSwitchComboBox.currentText()
         self.rule['action'] = self.ui.actionComboBox.currentText()
-        self.rule['keep_tags'] = self.ui.keepTagsCheckBox.isChecked()
         self.rule['keep_folder_structure'] = self.ui.keepFolderStructureCheckBox.isChecked()
         self.rule['target_folder'] = self.ui.targetFolderEdit.text()
         self.rule['target_subfolder'] = self.ui.subfolderEdit.text()
         self.rule['name_pattern'] = self.ui.renameEdit.text()
         self.rule['overwrite_switch'] = self.ui.overwriteComboBox.currentText()
-        self.rule['tags'] = [index.data() for index in self.ui.tagsView.selectedIndexes()]
         self.rule['ignore_newest'] = self.ui.ignoreNewestCheckBox.isChecked()
         self.rule['ignore_N'] = self.ui.numberNewestEdit.text()
 
@@ -266,7 +226,6 @@ class RuleEditWindow(QDialog):
         # Defaults to avoid KeyErrors
         self.rule.setdefault('folders', [])
         self.rule.setdefault('conditions', [])
-        self.rule.setdefault('tags', [])
         self.rule.setdefault('keep_folder_structure', False)
         self.rule.setdefault('target_subfolder', '')
         self.rule.setdefault('name_pattern', '')
@@ -287,7 +246,6 @@ class RuleEditWindow(QDialog):
         # Action-dependent fields
         self.ui.actionComboBox.setCurrentIndex(self.ui.actionComboBox.findText(self.rule.get('action', 'Move')))
         self.ui.targetFolderEdit.setText(self.rule.get('target_folder', ''))
-        self.ui.keepTagsCheckBox.setChecked(bool(self.rule.get('keep_tags', False)))
         self.ui.keepFolderStructureCheckBox.setChecked(bool(self.rule.get('keep_folder_structure', False)))
         self.ui.subfolderEdit.setText(self.rule.get('target_subfolder', ''))
         self.ui.renameEdit.setText(self.rule.get('name_pattern', ''))
@@ -296,19 +254,6 @@ class RuleEditWindow(QDialog):
             self.ui.overwriteComboBox.setCurrentIndex(
                 self.ui.overwriteComboBox.findText(self.rule['overwrite_switch'])
             )
-
-        # Restore tag selections in the tree
-        sel_model = self.ui.tagsView.selectionModel()
-        sel_model.clearSelection()
-        model = self.ui.tagsView.model()
-        target_tags = set(self.rule.get('tags', []))
-        for i in range(model.rowCount()):
-            parent_item = model.item(i)
-            for k in range(parent_item.rowCount()):
-                child = parent_item.child(k)
-                if child.text() in target_tags:
-                    sel_model.select(model.indexFromItem(child), QItemSelectionModel.Select)
-        self.ui.selectedTagsLabel.setText('Selected tags: ' + ','.join(self.rule.get('tags', [])))
 
         # Apply action visibility
         self.action_change()
@@ -330,7 +275,6 @@ class RuleEditWindow(QDialog):
         self.ui.targetFolderEdit.setVisible(state in ("Move", "Copy"))
         self.ui.folderBrowseButton.setVisible(state in ("Move", "Copy", "Move to subfolder"))
 
-        self.ui.keepTagsCheckBox.setVisible(state in ("Move", "Copy", "Move to subfolder"))
         self.ui.keepFolderStructureCheckBox.setVisible(state in ("Move", "Copy"))
 
         self.ui.fileWithSameNameLabel.setVisible(state in ("Move", "Copy", "Rename", "Move to subfolder"))
@@ -338,9 +282,6 @@ class RuleEditWindow(QDialog):
 
         self.ui.renameEdit.setVisible(state == "Rename")
         self.ui.subfolderEdit.setVisible(state == "Move to subfolder")
-
-        self.ui.tagsView.setVisible(state in ("Tag", "Remove tags"))
-        self.ui.selectedTagsLabel.setVisible(state in ("Tag", "Remove tags"))
 
     def add_folder(self):
         options = QFileDialog.DontResolveSymlinks | QFileDialog.ShowDirsOnly
@@ -351,12 +292,6 @@ class RuleEditWindow(QDialog):
             if normalized not in folders:
                 folders.append(normalized)
                 self.ui.sourceListWidget.addItem(normalized)
-
-    def add_all_tagged(self):
-        folders = self.rule.setdefault('folders', [])
-        if ALL_TAGGED_TEXT not in folders:
-            folders.append(ALL_TAGGED_TEXT)
-            self.ui.sourceListWidget.addItem(ALL_TAGGED_TEXT)
 
     def delete_source(self):
         indexes = self.ui.sourceListWidget.selectedIndexes()

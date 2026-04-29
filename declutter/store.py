@@ -29,10 +29,7 @@ PRIMITIVE_KEYS = {
     "rule_exec_interval": 300.0,
     "dryrun": False,
     "date_type": 0,
-    "style": "Fusion",
-    "theme": "System",
     "rules_window_geometry": None,
-    "tagger_window_geometry": None,
     "rules_window_visible_on_exit": True,
 }
 
@@ -145,11 +142,6 @@ def list_rules() -> List[Dict[str, Any]]:
                     conditions.append(json.loads(cr["payload"]))
                 except Exception:
                     conditions.append({"type": cr["type"]})
-            tag_rows = conn.execute(
-                "SELECT t.name FROM rule_tags rt JOIN tags t ON t.id = rt.tag_id WHERE rt.rule_id=? ORDER BY rt.id",
-                (rid,),
-            ).fetchall()
-            tags = [r["name"] for r in tag_rows]
             rules.append(
                 {
                     "id": rr["id"],
@@ -158,7 +150,6 @@ def list_rules() -> List[Dict[str, Any]]:
                     "action": rr["action"],
                     "recursive": bool(rr["recursive"]),
                     "condition_switch": rr["condition_switch"],
-                    "keep_tags": bool(rr["keep_tags"]),
                     "keep_folder_structure": bool(rr["keep_folder_structure"]),
                     "target_folder": rr["target_folder"] or "",
                     "target_subfolder": rr["target_subfolder"] or "",
@@ -168,30 +159,13 @@ def list_rules() -> List[Dict[str, Any]]:
                     "ignore_N": rr["ignore_N"] or "",
                     "folders": folders,
                     "conditions": conditions,
-                    "tags": tags,
                 }
             )
         return rules
 
 
-def _ensure_tag_and_get_id(conn: sqlite3.Connection, tag_name: str) -> int:
-    row = conn.execute("SELECT id FROM tags WHERE name=?", (tag_name,)).fetchone()
-    if row:
-        return row["id"]
-    mrow = conn.execute(
-        "SELECT COALESCE(MAX(list_order),0) AS m FROM tags WHERE group_id=1"
-    ).fetchone()
-    next_order = (mrow["m"] if mrow else 0) + 1
-    conn.execute(
-        "INSERT INTO tags(id, name, list_order, color, group_id) VALUES (NULL, ?, ?, NULL, 1)",
-        (tag_name, next_order),
-    )
-    return conn.execute("SELECT last_insert_rowid() AS id").fetchone()["id"]
-
-
 def replace_rules(rules: List[Dict[str, Any]]):
     with get_conn() as conn:
-        conn.execute("DELETE FROM rule_tags")
         conn.execute("DELETE FROM rule_conditions")
         conn.execute("DELETE FROM rule_folders")
         conn.execute("DELETE FROM rules")
@@ -203,7 +177,7 @@ def replace_rules(rules: List[Dict[str, Any]]):
                 rule.get("action", ""),
                 1 if rule.get("recursive", False) else 0,
                 rule.get("condition_switch", "all"),
-                1 if rule.get("keep_tags", False) else 0,
+                0,
                 1 if rule.get("keep_folder_structure", False) else 0,
                 rule.get("target_folder", ""),
                 rule.get("target_subfolder", ""),
@@ -242,11 +216,6 @@ def replace_rules(rules: List[Dict[str, Any]]):
                     (rid, cond.get("type", ""), json.dumps(cond)),
                 )
 
-            for t in rule.get("tags", []):
-                tag_id = _ensure_tag_and_get_id(conn, t)
-                conn.execute(
-                    "INSERT INTO rule_tags(rule_id, tag_id) VALUES (?,?)", (rid, tag_id)
-                )
         conn.commit()
 
 

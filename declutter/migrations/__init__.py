@@ -32,7 +32,9 @@ def run(conn: sqlite3.Connection):
 
 def _create_core_tables(conn: sqlite3.Connection):
     c = conn.cursor()
-    # Legacy tag tables (idempotent)
+    # Tagger tables (files, tags, file_tags, tag_groups) preserved in existing
+    # DBs but no longer used.  We still CREATE IF NOT EXISTS so that legacy
+    # queries in the v2 migration don't fail on a brand-new database.
     c.execute("""
         CREATE TABLE IF NOT EXISTS files (
             id INTEGER PRIMARY KEY,
@@ -64,7 +66,7 @@ def _create_core_tables(conn: sqlite3.Connection):
             name_shown INTEGER DEFAULT 1
         )
     """)
-    # Seed default tag group if empty
+    # Seed default tag group if empty (needed by legacy v2 migration)
     row = c.execute("SELECT COUNT(1) AS cnt FROM tag_groups").fetchone()
     if (row["cnt"] if row else 0) == 0:
         c.execute("INSERT INTO tag_groups VALUES (1, 'Default', 1, 0, 0)")

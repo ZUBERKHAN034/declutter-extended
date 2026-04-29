@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'rules_window.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.1
+## Created by: Qt User Interface Compiler version 6.11.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -34,16 +34,13 @@ class Ui_rulesWindow(object):
         sizePolicy.setHeightForWidth(rulesWindow.sizePolicy().hasHeightForWidth())
         rulesWindow.setSizePolicy(sizePolicy)
         icon = QIcon()
-        icon.addFile(u":/images/DeClutter.ico", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon.addFile(u":/images/icons/DeClutter_mac.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         rulesWindow.setWindowIcon(icon)
         self.actionAdd = QAction(rulesWindow)
         self.actionAdd.setObjectName(u"actionAdd")
+        self.actionAdd.setCheckable(False)
         icon1 = QIcon()
-        if QIcon.hasThemeIcon(QIcon.ThemeIcon.DocumentPageSetup):
-            icon1 = QIcon.fromTheme(QIcon.ThemeIcon.DocumentPageSetup)
-        else:
-            icon1.addFile(u":/images/icons/document-new.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-
+        icon1.addFile(u":/images/icons/plus.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.actionAdd.setIcon(icon1)
         self.actionOpen_log_file = QAction(rulesWindow)
         self.actionOpen_log_file.setObjectName(u"actionOpen_log_file")
@@ -51,6 +48,7 @@ class Ui_rulesWindow(object):
         self.actionClear_log_file.setObjectName(u"actionClear_log_file")
         self.actionDelete = QAction(rulesWindow)
         self.actionDelete.setObjectName(u"actionDelete")
+        self.actionDelete.setCheckable(False)
         icon2 = QIcon()
         if QIcon.hasThemeIcon(QIcon.ThemeIcon.EditDelete):
             icon2 = QIcon.fromTheme(QIcon.ThemeIcon.EditDelete)
@@ -60,6 +58,7 @@ class Ui_rulesWindow(object):
         self.actionDelete.setIcon(icon2)
         self.actionExecute = QAction(rulesWindow)
         self.actionExecute.setObjectName(u"actionExecute")
+        self.actionExecute.setCheckable(False)
         icon3 = QIcon()
         if QIcon.hasThemeIcon(QIcon.ThemeIcon.MediaPlaybackStart):
             icon3 = QIcon.fromTheme(QIcon.ThemeIcon.MediaPlaybackStart)
@@ -67,6 +66,14 @@ class Ui_rulesWindow(object):
             icon3.addFile(u":/images/icons/media-play.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
 
         self.actionExecute.setIcon(icon3)
+        font = QFont()
+        font.setPointSize(9)
+        font.setBold(False)
+        self.actionExecute.setFont(font)
+        self.actionExecute.setAutoRepeat(True)
+        self.actionExecute.setVisible(True)
+        self.actionExecute.setIconVisibleInMenu(True)
+        self.actionExecute.setPriority(QAction.Priority.NormalPriority)
         self.actionMove_up = QAction(rulesWindow)
         self.actionMove_up.setObjectName(u"actionMove_up")
         icon4 = QIcon()
@@ -89,18 +96,6 @@ class Ui_rulesWindow(object):
         self.actionSettings.setObjectName(u"actionSettings")
         self.actionAbout = QAction(rulesWindow)
         self.actionAbout.setObjectName(u"actionAbout")
-        self.actionManage_Tags = QAction(rulesWindow)
-        self.actionManage_Tags.setObjectName(u"actionManage_Tags")
-        self.actionOpen_Tagger = QAction(rulesWindow)
-        self.actionOpen_Tagger.setObjectName(u"actionOpen_Tagger")
-        icon6 = QIcon()
-        iconThemeName = u"system-file-manager"
-        if QIcon.hasThemeIcon(iconThemeName):
-            icon6 = QIcon.fromTheme(iconThemeName)
-        else:
-            icon6.addFile(u":/images/icons/tags.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-
-        self.actionOpen_Tagger.setIcon(icon6)
         self.centralwidget = QWidget(rulesWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         sizePolicy.setHeightForWidth(self.centralwidget.sizePolicy().hasHeightForWidth())
@@ -179,6 +174,8 @@ class Ui_rulesWindow(object):
         rulesWindow.setMenuBar(self.menubar)
         self.toolBar = QToolBar(rulesWindow)
         self.toolBar.setObjectName(u"toolBar")
+        self.toolBar.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
+        self.toolBar.setIconSize(QSize(24, 24))
         rulesWindow.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.toolBar)
 
         self.menubar.addAction(self.menuOptions_2.menuAction())
@@ -187,7 +184,6 @@ class Ui_rulesWindow(object):
         self.menuOptions.addAction(self.actionOpen_log_file)
         self.menuOptions.addAction(self.actionClear_log_file)
         self.menuOptions_2.addAction(self.actionSettings)
-        self.menuOptions_2.addAction(self.actionManage_Tags)
         self.menuHelp.addAction(self.actionAbout)
         self.toolBar.addAction(self.actionAdd)
         self.toolBar.addAction(self.actionDelete)
@@ -195,8 +191,6 @@ class Ui_rulesWindow(object):
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionMove_up)
         self.toolBar.addAction(self.actionMove_down)
-        self.toolBar.addSeparator()
-        self.toolBar.addAction(self.actionOpen_Tagger)
 
         self.retranslateUi(rulesWindow)
 
@@ -204,7 +198,7 @@ class Ui_rulesWindow(object):
     # setupUi
 
     def retranslateUi(self, rulesWindow):
-        rulesWindow.setWindowTitle(QCoreApplication.translate("rulesWindow", u"Rules", None))
+        rulesWindow.setWindowTitle(QCoreApplication.translate("rulesWindow", u"DeClutter: Rules", None))
         self.actionAdd.setText(QCoreApplication.translate("rulesWindow", u"Add", None))
 #if QT_CONFIG(tooltip)
         self.actionAdd.setToolTip(QCoreApplication.translate("rulesWindow", u"Add", None))
@@ -229,21 +223,19 @@ class Ui_rulesWindow(object):
 #endif // QT_CONFIG(shortcut)
         self.actionSettings.setText(QCoreApplication.translate("rulesWindow", u"Settings", None))
         self.actionAbout.setText(QCoreApplication.translate("rulesWindow", u"About", None))
-        self.actionManage_Tags.setText(QCoreApplication.translate("rulesWindow", u"Manage Tags", None))
-        self.actionOpen_Tagger.setText(QCoreApplication.translate("rulesWindow", u"Open Tagger", None))
         self.addRule.setText(QCoreApplication.translate("rulesWindow", u"Add", None))
         self.deleteRule.setText(QCoreApplication.translate("rulesWindow", u"Delete", None))
         self.applyRule.setText(QCoreApplication.translate("rulesWindow", u"Apply", None))
         self.moveUp.setText(QCoreApplication.translate("rulesWindow", u"Move Up", None))
         self.moveDown.setText(QCoreApplication.translate("rulesWindow", u"Move Down", None))
         ___qtablewidgetitem = self.rulesTable.horizontalHeaderItem(0)
-        ___qtablewidgetitem.setText(QCoreApplication.translate("rulesWindow", u"Name", None));
+        ___qtablewidgetitem.setText(QCoreApplication.translate("rulesWindow", u"Name", None))
         ___qtablewidgetitem1 = self.rulesTable.horizontalHeaderItem(1)
-        ___qtablewidgetitem1.setText(QCoreApplication.translate("rulesWindow", u"Status", None));
+        ___qtablewidgetitem1.setText(QCoreApplication.translate("rulesWindow", u"Status", None))
         ___qtablewidgetitem2 = self.rulesTable.horizontalHeaderItem(2)
-        ___qtablewidgetitem2.setText(QCoreApplication.translate("rulesWindow", u"Action", None));
+        ___qtablewidgetitem2.setText(QCoreApplication.translate("rulesWindow", u"Action", None))
         ___qtablewidgetitem3 = self.rulesTable.horizontalHeaderItem(3)
-        ___qtablewidgetitem3.setText(QCoreApplication.translate("rulesWindow", u"Source(s)", None));
+        ___qtablewidgetitem3.setText(QCoreApplication.translate("rulesWindow", u"Source(s)", None))
         self.menuOptions.setTitle(QCoreApplication.translate("rulesWindow", u"Tools", None))
         self.menuOptions_2.setTitle(QCoreApplication.translate("rulesWindow", u"Options", None))
         self.menuHelp.setTitle(QCoreApplication.translate("rulesWindow", u"Help", None))

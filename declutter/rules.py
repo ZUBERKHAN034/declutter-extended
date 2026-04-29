@@ -1,4 +1,3 @@
-import re
 from fnmatch import fnmatch
 import logging
 import os
@@ -6,18 +5,14 @@ from pathlib import Path
 from shutil import copytree, rmtree
 from time import time
 from send2trash import send2trash
-from declutter.tags import add_tags, remove_tags
-from declutter.config import ALL_TAGGED_TEXT
 from declutter.store import load_settings
 from declutter.file_utils import (get_file_time, convert_to_days, get_size, advanced_copy,
-                         advanced_move, get_file_type, get_actual_filename,
+                         advanced_move, get_file_type,
                          _escape_glob)
-from declutter.tags import (get_tags, set_tags, remove_all_tags, get_file_tags_by_group, get_tag_groups, 
-                   check_files, get_all_files_from_db)
 
 def apply_rule(rule, dryrun=False):
     report = {'copied': 0, 'moved': 0, 'moved to subfolder': 0, 'deleted': 0,
-              'trashed': 0, 'tagged': 0, 'untagged': 0, 'cleared tags': 0, 'renamed': 0}
+              'trashed': 0, 'renamed': 0}
     details = []
     if rule['enabled']:
         files = get_files_affected_by_rule(rule)
@@ -61,17 +56,10 @@ def apply_rule(rule, dryrun=False):
                                 if result:
                                     report['copied'] += 1
                                     msg = "Copied " + f + " to " + str(result)
-                        if rule['keep_tags']:
-                            tags = get_tags(f)
-                            if set_tags(result, tags):
-                                msg += ", tags copied too"
-                            else:
-                                msg += ", tags not copied"
                     except Exception as e:
                         logging.exception(f'exception {e}')
                 elif rule['action'] == 'Move':
                     if not dryrun:
-                        tags = get_tags(f)
                         target_folder = resolve_path(rule['target_folder'], p)
                         target = Path(target_folder) / str(p).replace(':', '') if ('keep_folder_structure' in rule.keys(
                         ) and rule['keep_folder_structure']) else Path(target_folder) / p.name
@@ -81,12 +69,6 @@ def apply_rule(rule, dryrun=False):
                             if result:
                                 msg = "Moved " + f + " to " + str(result)
                                 report['moved'] += 1
-                                remove_all_tags(f)
-                                # TBD implement removing tags if keep_tags == False
-                                if rule['keep_tags'] and tags:
-                                    set_tags(result, tags)
-                                    # if Path(get_tag_file_path(f)).is_file(): # TBD bring this back for sidecar files
-                                    msg += ", with tags"
                         except Exception as e:
                             logging.exception(f'exception {e}')
                     else:
@@ -116,10 +98,6 @@ def apply_rule(rule, dryrun=False):
                                     # if tf.is_file():
                                     #     os.chdir(tf.parent)
                                     #     os.rename(tf.name, newname + '.json')
-                                    tags = get_tags(f)
-                                    if tags:
-                                        remove_all_tags(f)
-                                        set_tags(newfullname, tags)
                                     report['renamed'] += 1
                                     msg = 'Renamed ' + f + ' to ' + str(result)
                             except Exception as e:
@@ -132,24 +110,16 @@ def apply_rule(rule, dryrun=False):
                         logging.error(
                             "Name pattern is missing for rule " + rule['name'])
                 elif rule['action'] == 'Move to subfolder':
-                    tags = get_tags(f)
                     target_subfolder = resolve_path(
                         rule['target_subfolder'], p)
                     if p.parent.name != target_subfolder:  # check if we're not already in the subfolder
-                        # target = Path(rule['target_subfolder']) / p.name
                         if not dryrun:
                             result = advanced_move(f, p.parent / Path(target_subfolder) / p.name, (
                                 rule['overwrite_switch'] == 'overwrite') if 'overwrite_switch' in rule.keys() else False)
                             if result:
-                                remove_all_tags(f)
                                 report['moved to subfolder'] += 1
                                 msg = "Moved " + f + " to subfolder: " + \
                                     str(target_subfolder)
-
-                                # TBD implement removing tags if keep_tags == False
-                                if rule['keep_tags'] and tags:
-                                    set_tags(result, tags)
-                                    msg += ", with tags"
                         else:
                             msg = "Moved " + f + " to subfolder: " + \
                                 str(target_subfolder)
@@ -158,39 +128,11 @@ def apply_rule(rule, dryrun=False):
                     if not dryrun:
                         report['deleted'] += 1
                         os.remove(f)
-                        remove_all_tags(f)
-                        # if get_tag_file_path(f).is_file(): # TBD implement this for sidecar files
-                        #     os.remove(get_tag_file_path(f))
                 elif rule['action'] == 'Send to Trash':
                     msg = "Sent to trash " + f
                     if not dryrun:
                         report['trashed'] += 1
                         send2trash(f)
-                        remove_all_tags(f)
-                        # if get_tag_file_path(f).is_file(): # TBD implement this for sidecar files
-                        #     os.remove(get_tag_file_path(f))
-                elif rule['action'] == 'Tag':
-                    if not dryrun:
-                        if rule['tags'] and not set(rule['tags']).issubset(set(get_tags(f))):
-                            add_tags(f, rule['tags'])
-                            msg = "Tagged " + f + " with " + str(rule['tags'])
-                            report['tagged'] += 1
-                elif rule['action'] == 'Remove tags':
-                    if not dryrun:                    
-                    # Remove only the tags that exist on the file
-                        if rule['tags']:
-                            current_tags = set(get_tags(f))
-                            tags_to_remove = list(current_tags.intersection(rule['tags']))
-                            if tags_to_remove:
-                                remove_tags(f, tags_to_remove)
-                                msg = f"Removed these tags from {f}: {tags_to_remove}"
-                                report['untagged'] += 1
-                elif rule['action'] == 'Clear all tags':
-                    if not dryrun:
-                        if get_tags(f):
-                            remove_all_tags(f)
-                            msg = "Cleared tags for  " + f
-                            report['cleared tags'] += 1
                 if msg:
                     details.append(msg)
                     logging.debug(msg)
@@ -198,21 +140,11 @@ def apply_rule(rule, dryrun=False):
     #     logging.debug("Rule "+rule['name'] + " disabled, skipping.")
     return report, details
 
-# resolves patterns in taget_folder name
-# <group:group_name> replaced with the first tag that path is tagged with; if path has no tags in this group, replaced with None
+# resolves patterns in target_folder name
 # <type> replaced with the type of path (uses types from settings), if the type can't be resolved, replaced with None
-# TBD: replacing with None should be optional
 
 def resolve_path(target_folder, path):
     final_path = target_folder.replace('<type>', get_file_type(path))
-    # final_path = re.sub("<group:(.*)>", get_file_tag_by_group('\1'), target_folder)
-    # final_path = re.sub("<group:(.*)>", '\\1', target_folder)
-    rep = re.findall("(<group:(.*?)>)", target_folder)
-    for r in rep:
-        group_tags = get_file_tags_by_group(r[1], path)
-        final_path = final_path.replace(
-            r[0], group_tags[0] if group_tags else 'None')
-
     return final_path
 
 
@@ -232,7 +164,7 @@ def get_files_affected_by_rule(rule, allow_empty_conditions=False):
         return ([])
     found = []
     for f in rule['folders']:
-        if Path(f).is_dir() or f == ALL_TAGGED_TEXT:
+        if Path(f).is_dir():
             found.extend(get_files_affected_by_rule_folder(rule, f, []))
         else:
             logging.error('Folder ' + f + ' in rule ' +
@@ -265,9 +197,7 @@ def get_files_affected_by_rule(rule, allow_empty_conditions=False):
 
 
 def get_files_affected_by_rule_folder(rule, dirname, files_found=None):
-    check_files()  # this is required to clean up the missing or incorrect file paths, TBD optimize this
-    files = [get_actual_filename(f) for f in get_all_files_from_db()] if dirname == ALL_TAGGED_TEXT else os.listdir(
-        dirname)  # TBD not sure if we need get_actual_filename() here
+    files = os.listdir(dirname)
     out_files = files_found if files_found is not None else []
     for f in files:
         if f != '.dc':  # ignoring .dc folder TBD can be removed for now and brough back for sidecar files
@@ -276,31 +206,9 @@ def get_files_affected_by_rule_folder(rule, dirname, files_found=None):
                 conditions_met = False
             else:
                 conditions_met = False if rule['condition_switch'] == 'any' else True
-                conditions_met = True if rule['action'] == 'Filter' and rule['conditions'] == [
-                ] else conditions_met  # return all files in tagger when no filters are added
                 for c in rule['conditions']:
                     condition_met = False
-                    if c['type'] == 'tags':
-                        tags = get_tags(fullname)
-                        common_tags = [
-                            value for value in tags if value in c['tags']]
-                        if c['tag_switch'] == 'any':
-                            # TBD or better bool(common_tags)?
-                            condition_met = len(common_tags) > 0
-                        elif c['tag_switch'] == 'all':
-                            condition_met = set(common_tags) == set(
-                                c['tags']) and tags  # tags must be not empty
-                        elif c['tag_switch'] == 'none':
-                            condition_met = common_tags == []
-                        elif c['tag_switch'] == 'no tags':
-                            condition_met = tags == []
-                        elif c['tag_switch'] == 'any tags':
-                            condition_met = len(tags) > 0
-                        elif c['tag_switch'] == 'tags in group':
-                            condition_met = c['tag_group'] in get_tag_groups(
-                                fullname)
-
-                    elif c['type'] == 'date':
+                    if c['type'] == 'date':
                         try:
                             settings = load_settings()
                             if c['age_switch'] == '>=':
@@ -352,9 +260,8 @@ def get_files_affected_by_rule_folder(rule, dirname, files_found=None):
             if conditions_met:
                 out_files.append(os.path.normpath(fullname))
 
-            # Important: it recurses for 'Rename' and 'Tag' actions, but doesn't recurse for other actions if the folder matches the conditions
-            # That's because the whole folder will be copied/moved/trashed and it doesn't make sense to check its files
-            if (rule['action'] in ('Rename', 'Tag', 'Remove tags', 'Clear all tags') or not conditions_met) and os.path.isdir(fullname) and rule['recursive']:
+            # Recurse for 'Rename'; for other actions skip already-matched folders
+            if (rule['action'] == 'Rename' or not conditions_met) and os.path.isdir(fullname) and rule['recursive']:
                 # if not conditions_met and os.path.isdir(fullname) and rule['recursive']:
                 get_files_affected_by_rule_folder(rule, fullname, out_files)
     return out_files

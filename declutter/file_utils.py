@@ -1,8 +1,6 @@
 import hashlib
-import glob
 import os
 import re
-import sys
 import subprocess
 from shutil import copy2, copytree, move, rmtree
 from pathlib import Path
@@ -259,25 +257,8 @@ def get_nonexistent_path(src, dst):
 
 
 def get_actual_filename(name):
-    dirs = name.split("\\")
-    test_name = [dirs[0].upper()]
-    for d in dirs[1:]:
-        test_name += ["%s[%s]" % (d[:-1], d[-1])]
-    res = ""
-    try:
-        res = glob.glob("\\".join(test_name))
-    except Exception as e:
-        logging.exception(e)
-    if not res:
-        # File not found
-        # TBD this is a bit dangerous - will affect symlinks
-        return os.path.normpath(Path(name).resolve())
-    return os.path.normpath(res[0])
+    return os.path.normpath(Path(name).resolve())
 
 
 def open_file(filename):
-    if sys.platform == "win32":
-        os.startfile(filename)  # type: ignore[attr-defined]
-    else:
-        opener = "open" if sys.platform == "darwin" else "xdg-open"
-        subprocess.call([opener, filename])
+    subprocess.call(["open", filename])

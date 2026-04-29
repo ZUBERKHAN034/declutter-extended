@@ -28,10 +28,16 @@ if sys.platform != "darwin":
     def apply_macos_palette(app, dark: bool = False):
         pass
 
+    def init_macos_theme(app):
+        pass
+
+    def apply_system_theme(app):
+        pass
+
 else:
     from PySide6.QtCore import Qt
-    from PySide6.QtGui import QFont, QFontDatabase, QPalette, QColor
-    from PySide6.QtWidgets import QApplication, QPushButton, QWidget, QMainWindow
+    from PySide6.QtGui import QFont, QFontDatabase, QPalette, QColor, QPixmap, QPainter, QIcon
+    from PySide6.QtWidgets import QApplication, QWidget, QMainWindow
 
     def _ns_window(qwindow):
         """Get the NSWindow from a QWindow via pyobjc."""
@@ -122,7 +128,7 @@ else:
             p.setColor(QPalette.Window, QColor(255, 255, 255, 245))
             p.setColor(QPalette.WindowText, Qt.black)
             p.setColor(QPalette.Base, QColor(255, 255, 255, 230))
-            p.setColor(QPalette.AlternateBase, QColor(245, 245, 245, 230))
+            p.setColor(QPalette.AlternateBase, QColor(232, 232, 237, 255))
             p.setColor(QPalette.Text, Qt.black)
             p.setColor(QPalette.Button, QColor(240, 240, 240, 220))
             p.setColor(QPalette.ButtonText, Qt.black)
@@ -151,7 +157,7 @@ else:
             card_bg = "rgba(250, 250, 250, 220)"
             card_border = "rgba(0, 0, 0, 8)"
             table_bg = "rgba(255, 255, 255, 230)"
-            table_alt = "rgba(245, 245, 245, 230)"
+            table_alt = "rgba(232, 232, 237, 255)"
             header_bg = "rgba(240, 240, 240, 240)"
             text_color = "#1D1D1F"
 
@@ -275,14 +281,73 @@ else:
                 return bg.lightness() < 128
             return False
 
+    def recolor_icon(path: str, color: QColor, size: int = 24) -> QIcon:
+        """Load an SVG/image, scale to a uniform *size*, and re-fill all
+        opaque pixels with *color*.  Renders at 2× for Retina clarity."""
+        from PySide6.QtCore import QSize as _QSize, QFile, QIODevice
+        from PySide6.QtSvg import QSvgRenderer
+
+        # Read SVG data via QFile so Qt resource paths (:/...) work
+        f = QFile(path)
+        if not f.open(QIODevice.ReadOnly):
+            return QIcon()
+        data = f.readAll()
+        f.close()
+
+        renderer = QSvgRenderer(data)
+        if not renderer.isValid():
+            return QIcon()
+
+        # Render at 2× for Retina displays
+        px_size = size * 2
+        pixmap = QPixmap(_QSize(px_size, px_size))
+        pixmap.fill(Qt.transparent)
+        painter = QPainter(pixmap)
+        renderer.render(painter)
+        # Recolor all opaque pixels
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+        painter.fillRect(pixmap.rect(), color)
+        painter.end()
+        pixmap.setDevicePixelRatio(2.0)
+        return QIcon(pixmap)
+
+    def recolor_toolbar_icons(dark: bool):
+        """Re-tint all QMainWindow toolbar action icons for the active theme."""
+        from PySide6.QtGui import QAction as _QAction
+        color = QColor(255, 255, 255) if dark else QColor(30, 30, 30)
+        app = QApplication.instance()
+        if app is None:
+            return
+        for window in app.topLevelWidgets():
+            if not isinstance(window, QMainWindow):
+                continue
+            for action in window.findChildren(_QAction):
+                resource = action.property("_dc_icon_resource")
+                if resource:
+                    action.setIcon(recolor_icon(resource, color))
+
+    def apply_system_theme(app: QApplication):
+        """Detect current macOS appearance and apply the matching palette,
+        stylesheet, and toolbar icon colors."""
+        dark = _is_dark_mode()
+        apply_macos_palette(app, dark=dark)
+        app.setStyleSheet(macos_stylesheet(is_dark=dark))
+        recolor_toolbar_icons(dark)
+
+    def init_macos_theme(app: QApplication):
+        """One-time setup: apply font, detect system theme, and connect
+        paletteChanged so the app reacts live to dark/light switches.
+        Uses the native macOS style (no Fusion override)."""
+        set_macos_font(app)
+        apply_system_theme(app)
+        # Re-apply whenever macOS pushes a new palette (dark ↔ light)
+        app.paletteChanged.connect(lambda _palette: apply_system_theme(app))
+
     def apply_macos_styling(window):
         """
         Apply full macOS styling to a QMainWindow or QDialog.
         Call after setupUi().
         """
-        if sys.platform != "darwin":
-            return
-
         app = QApplication.instance()
         if app is None:
             return

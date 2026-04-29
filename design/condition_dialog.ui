@@ -24,11 +24,11 @@
   </property>
   <property name="windowIcon">
    <iconset resource="DeClutter.qrc">
-    <normaloff>:/images/icons/DeClutter.ico</normaloff>:/images/icons/DeClutter.ico</iconset>
+    <normaloff>:/images/icons/DeClutter_mac.png</normaloff>:/images/icons/DeClutter_mac.png</iconset>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0,0,0,0,2">
+    <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0,0">
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0,0">
        <property name="sizeConstraint">
@@ -68,11 +68,6 @@
          <item>
           <property name="text">
            <string>size</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>tags</string>
           </property>
          </item>
          <item>
@@ -279,105 +274,6 @@
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_7">
-       <item>
-        <widget class="QLabel" name="tagLabel">
-         <property name="text">
-          <string>File has</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="tagsCombo">
-         <item>
-          <property name="text">
-           <string>any</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>all</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>none</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>no tags</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>any tags</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>tags in group</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="tagLabel2">
-         <property name="text">
-          <string>of selected tags:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="tagGroupsCombo"/>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_8">
-       <item>
-        <widget class="TagTree" name="tagsView">
-         <property name="styleSheet">
-          <string notr="true"/>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_4">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <widget class="QLabel" name="selectedTagsLabel">
-       <property name="text">
-        <string>Selected tags:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
         <widget class="QLabel" name="typeLabel">
@@ -469,13 +365,7 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>TagTree</class>
-   <extends>QTreeView</extends>
-   <header location="global">..tag_tree</header>
-  </customwidget>
- </customwidgets>
+ <customwidgets/>
  <resources>
   <include location="DeClutter.qrc"/>
  </resources>

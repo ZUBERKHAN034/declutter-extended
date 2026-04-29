@@ -13,7 +13,7 @@ DeClutter is a desktop application built on PySide6 that helps you manage and or
     *   **Tag groups:** Create groups of tags where only one tag from the group can be applied to a file.
     *   **Filter by tags:** Easily find files with specific tags.
     *   **Media preview:** Preview audio, video, and image files directly in the tagger.
-*   **Drag and Drop:** Drag and drop files between DeClutter and your file explorer.
+*   **Drag and Drop:** Drag and drop files between DeClutter and Finder.
 
 ## Use Cases
 
@@ -27,7 +27,7 @@ DeClutter is a desktop application built on PySide6 that helps you manage and or
 
 *   **Framework:** PySide6
 *   **Database:** SQLite
-*   **Platform:** Primarily tested on Windows, but also runs on macOS (with some limitations).
+*   **Platform:** macOS
 
 ## Contributing
 

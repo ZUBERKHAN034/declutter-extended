@@ -1,5 +1,4 @@
 from cx_Freeze import setup, Executable
-import sys
 import os
 from declutter.config import VERSION as APP_VERSION
 
@@ -23,11 +22,9 @@ build_exe_options = {
     ],
     "packages": ["os", "sys", "collections", "PySide6", "declutter", "requests", "certifi", "charset_normalizer"],
     "include_files": [
-        os.path.join("assets", "DeClutter.ico"),
-        os.path.join("scripts", "DeClutter.iss")
+        os.path.join("assets", "DeClutter.icns"),
     ],
-    "optimize": 2,
-    "include_msvcr": True
+    "optimize": 2
 }
 
 setup(
@@ -38,8 +35,7 @@ setup(
     executables=[
         Executable(
             os.path.join("src", "DeClutter.py"),
-            base="Win32GUI" if sys.platform == "win32" else None,
-            icon=os.path.join("assets", "DeClutter.ico")
+            icon=os.path.join("assets", "DeClutter.icns")
         )
     ]
 )

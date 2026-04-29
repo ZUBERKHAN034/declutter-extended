@@ -43,8 +43,6 @@ workflows:
           ICON_ARG=""
           if [ -f assets/DeClutter.icns ]; then
             ICON_ARG="--icon assets/DeClutter.icns"
-          elif [ -f assets/DeClutter.ico ]; then
-            ICON_ARG="--icon assets/DeClutter.ico"
           else
             ICON_ARG="--icon NONE"
           fi

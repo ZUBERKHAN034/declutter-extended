@@ -10,10 +10,8 @@ import requests
 _lock_handle = None  # kept alive to hold the file lock
 
 def _ensure_single_instance():
-    """On macOS, acquire an exclusive file lock so only one instance runs.
+    """Acquire an exclusive file lock so only one instance runs.
     If another instance already holds the lock, silently exit."""
-    if sys.platform != "darwin":
-        return
     import fcntl
     global _lock_handle
     lock_path = os.path.expanduser("~/.declutter.lock")
@@ -23,7 +21,7 @@ def _ensure_single_instance():
     except OSError:
         # Another instance is already running — exit silently
         sys.exit(0)
-from PySide6.QtGui import QIcon, QAction, QPalette, QColor, QKeySequence
+from PySide6.QtGui import QIcon, QAction, QKeySequence, QPalette, QColor
 from PySide6.QtWidgets import (
     QApplication,
     QSystemTrayIcon,
@@ -34,7 +32,6 @@ from PySide6.QtWidgets import (
     QTableWidgetSelectionRange,
     QMainWindow,
     QMessageBox,
-    QStyleFactory,
 )
 from PySide6.QtCore import Qt, QObject, QThread, Signal, Slot, QTimer, QByteArray
 from src.rule_edit_window import RuleEditWindow
@@ -47,8 +44,7 @@ from declutter.rules import apply_all_rules, apply_rule, get_rule_by_id
 from declutter.file_utils import open_file
 from declutter.logging_utils import _refresh_log_file_handler
 
-from src.declutter_tagger import TaggerWindow
-from src.ui.macos_style import apply_macos_styling
+from src.ui.macos_style import apply_macos_styling, init_macos_theme
 
 
 class RulesWindow(QMainWindow):
@@ -77,22 +73,33 @@ class RulesWindow(QMainWindow):
         except Exception:
             pass
 
-        style = self.settings.get("style", "Fusion")
-        theme = self.settings.get("theme", "System")
-        if sys.platform == "darwin":
-            apply_macos_styling(self)
-        else:
-            apply_style_and_theme(QApplication.instance(), style, theme)
+        apply_macos_styling(self)
+
+        # Tag toolbar actions with their SVG resource paths so
+        # recolor_toolbar_icons() can re-tint them on theme change.
+        _icon_map = {
+            self.ui.actionAdd: ":/images/icons/plus.svg",
+            self.ui.actionDelete: ":/images/icons/trash.svg",
+            self.ui.actionExecute: ":/images/icons/media-play.svg",
+            self.ui.actionMove_up: ":/images/icons/arrow-thin-up.svg",
+            self.ui.actionMove_down: ":/images/icons/arrow-thin-down.svg",
+        }
+        for action, res in _icon_map.items():
+            action.setProperty("_dc_icon_resource", res)
+
+        # Apply initial icon colors for the current theme
+        from src.ui.macos_style import recolor_icon
+        dark = self.palette().color(QPalette.ColorRole.Window).lightness() < 128
+        icon_color = QColor(255, 255, 255) if dark else QColor(30, 30, 30)
+        for action, res in _icon_map.items():
+            action.setIcon(recolor_icon(res, icon_color))
 
         self.ui.addRule.clicked.connect(self.add_rule)
         self.load_rules()
         self.ui.rulesTable.cellDoubleClicked.connect(self.edit_rule)
         self.ui.deleteRule.clicked.connect(self.delete_rule)
         self.ui.applyRule.clicked.connect(self.apply_rule)
-        if sys.platform == "darwin":
-            self.setWindowIcon(QIcon(":/images/icons/DeClutter_mac.png"))
-        else:
-            self.setWindowIcon(QIcon(":/images/icons/DeClutter.ico"))
+        self.setWindowIcon(QIcon(":/images/icons/DeClutter_mac.png"))
         self.trayIcon.messageClicked.connect(self.message_clicked)
         self.trayIcon.activated.connect(self.tray_activated)
         self.trayIcon.setToolTip(
@@ -119,10 +126,6 @@ class RulesWindow(QMainWindow):
         self.ui.actionSettings.setShortcut(QKeySequence.StandardKey.Preferences)
         self.ui.actionSettings.triggered.connect(self.show_settings)
         self.ui.actionAbout.triggered.connect(self.show_about)
-        self.ui.actionOpen_Tagger.triggered.connect(self.show_tagger)
-        self.tagger = TaggerWindow()
-        self.ui.actionManage_Tags.triggered.connect(self.tagger.manage_tags)
-
         self._settings_dialog = SettingsDialog()
         self._settings_dialog.accepted.connect(self._on_settings_saved)
         self._settings_dialog.finished.connect(self._on_settings_closed)
@@ -160,24 +163,6 @@ class RulesWindow(QMainWindow):
                     )
                     if reply == QMessageBox.Yes:
                         try:
-                            # Get the download URL from the latest release
-                            response = requests.get(
-                                "https://api.github.com/repos/midnightdim/declutter/releases/latest"
-                            )
-                            if response.status_code == 200:
-                                release_data = response.json()
-                                if sys.platform.startswith("win"):
-                                    # Find the Windows executable asset
-                                    for asset in release_data.get("assets", []):
-                                        if (
-                                            asset["name"].endswith(".exe")
-                                            and "Windows" in asset["name"]
-                                        ):
-                                            webbrowser.open(
-                                                asset["browser_download_url"]
-                                            )
-                                            return
-                            # Fallback to releases page if no specific asset found
                             webbrowser.open(
                                 "https://github.com/midnightdim/declutter/releases/latest"
                             )
@@ -271,21 +256,10 @@ class RulesWindow(QMainWindow):
         )
         self.timer.setInterval(int(self.settings["rule_exec_interval"] * 1000))
 
-        # On macOS, styling is managed by apply_macos_styling — skip
-        # apply_style_and_theme which would wipe the macOS stylesheet.
-        if sys.platform != "darwin":
-            style = self.settings.get("style", "Fusion")
-            theme = self.settings.get("theme", "System")
-            apply_style_and_theme(QApplication.instance(), style, theme)
-
     def _on_settings_closed(self):
         """Slot called when the Settings dialog is dismissed (OK or Cancel)."""
         if not self.isVisible():
             _set_macos_activation_policy(True)
-
-    def change_style(self, style_name):
-        """Changes the application's style."""
-        QApplication.setStyle(QStyleFactory.create(style_name))
 
     def open_log_file(self):
         """Opens the log file."""
@@ -453,9 +427,6 @@ class RulesWindow(QMainWindow):
         self.showRulesWindow = QAction("Rules", self)
         self.showRulesWindow.triggered.connect(self.showNormal)
 
-        self.showTaggerWindow = QAction("Tagger", self)
-        self.showTaggerWindow.triggered.connect(self.show_tagger)
-
         self.showSettingsWindow = QAction("Settings", self)
         self.showSettingsWindow.setMenuRole(QAction.MenuRole.NoRole)
         self.showSettingsWindow.triggered.connect(self.show_settings)
@@ -472,17 +443,13 @@ class RulesWindow(QMainWindow):
 
         self.trayIconMenu = QMenu(self)
         self.trayIconMenu.addAction(self.showRulesWindow)
-        self.trayIconMenu.addAction(self.showTaggerWindow)
         self.trayIconMenu.addAction(self.showSettingsWindow)
         self.trayIconMenu.addSeparator()
         self.trayIconMenu.addAction(self.quitAction)
 
         self.trayIcon = QSystemTrayIcon(self)
         self.trayIcon.setContextMenu(self.trayIconMenu)
-        if sys.platform == "darwin":
-            self.trayIcon.setIcon(QIcon(":/images/icons/DeClutter_mac.png"))
-        else:
-            self.trayIcon.setIcon(QIcon(":/images/icons/DeClutter.ico"))
+        self.trayIcon.setIcon(QIcon(":/images/icons/DeClutter_mac.png"))
         self.trayIcon.setVisible(True)
         self.trayIcon.show()
 
@@ -492,11 +459,6 @@ class RulesWindow(QMainWindow):
         self.maximizeAction.setEnabled(not self.isMaximized())
         self.restoreAction.setEnabled(self.isMaximized() or not visible)
         super().setVisible(visible)
-
-    def show_tagger(self):
-        """Shows the tagger window."""
-        self.tagger.show()
-        self.tagger.init_tag_checkboxes()  # TBD this doesn't look like the best solution  # TBD this doesn't look like the best solution
 
     def _handle_quit(self):
         # Mark that we are quitting, then initiate app shutdown
@@ -571,173 +533,6 @@ class RulesWindow(QMainWindow):
         self.service_runs = False
 
 
-def make_fusion_light_palette() -> QPalette:
-    p = QPalette()
-    # Surfaces (close to system light)
-    p.setColor(
-        QPalette.Window, QColor(248, 248, 248)
-    )  # near-white, reduces "gray" feel
-    p.setColor(QPalette.Base, QColor(255, 255, 255))  # white for text inputs/tables
-    p.setColor(QPalette.AlternateBase, QColor(251, 251, 251))  # very close to white
-    # Text
-    p.setColor(QPalette.Text, Qt.black)
-    p.setColor(QPalette.WindowText, Qt.black)
-    p.setColor(QPalette.ButtonText, Qt.black)
-    p.setColor(QPalette.ToolTipText, Qt.black)
-    p.setColor(QPalette.BrightText, Qt.red)
-    # Controls
-    p.setColor(QPalette.Button, QColor(248, 248, 248))  # match Window
-    # Accents (Windows-like)
-    p.setColor(QPalette.Highlight, QColor(0, 120, 212))  # #0078d4
-    p.setColor(QPalette.HighlightedText, Qt.white)
-    # Tooltips
-    p.setColor(QPalette.ToolTipBase, Qt.white)
-    # Group/Disabled states follow Qt defaults (keeps minimal diff)
-    return p
-
-
-def make_fusion_dark_palette() -> QPalette:
-    p = QPalette()
-    # Common dark Fusion palette roles (as you used; keeps diff minimal)
-    p.setColor(QPalette.Window, QColor(53, 53, 53))  # #353535
-    p.setColor(QPalette.WindowText, Qt.white)  # #ffffff
-    p.setColor(QPalette.Base, QColor(35, 35, 35))  # #232323
-    p.setColor(QPalette.AlternateBase, QColor(53, 53, 53))  # #353535
-    p.setColor(QPalette.ToolTipBase, QColor(70, 70, 70))
-    p.setColor(QPalette.ToolTipText, Qt.white)  # #ffffff
-    p.setColor(QPalette.Text, Qt.white)  # #ffffff
-    p.setColor(QPalette.Button, QColor(53, 53, 53))  # #353535
-    p.setColor(QPalette.ButtonText, Qt.white)  # #ffffff
-    p.setColor(QPalette.BrightText, Qt.red)
-    p.setColor(QPalette.Link, QColor(42, 130, 218))  # #2a82da
-    p.setColor(QPalette.Highlight, QColor(42, 130, 218))  # #2a82da
-    p.setColor(QPalette.HighlightedText, Qt.black)  # #000000
-    return p
-
-
-def apply_style_and_theme(app: QApplication, style_name: str, theme_name: str):
-    try:
-        # Always set the user-selected style
-        QApplication.setStyle(QStyleFactory.create(style_name))
-        active_style = QApplication.style().objectName().lower()
-
-        # windowsvista has no dark support; always treat as Light
-        if style_name.lower() == "windowsvista":
-            theme_name = "Light"
-
-        # System: follow OS, clear overrides
-        if theme_name == "System":
-            app.setPalette(QPalette())
-            app.setStyleSheet("")
-            return
-
-        # Force Light
-        if theme_name == "Light":
-            if active_style == "fusion":
-                pal = make_fusion_light_palette()
-                app.setPalette(pal)
-            else:
-                pal = QApplication.style().standardPalette()
-                # Minimal brightness nudge for native Light (keeps toolbars/headers closer to true system light)
-                if pal.color(QPalette.Button).value() < 240:
-                    pal.setColor(QPalette.Button, QColor(248, 248, 248))
-                if pal.color(QPalette.Window).value() < 240:
-                    pal.setColor(QPalette.Window, QColor(248, 248, 248))
-                # Keep tables crisp
-                pal.setColor(QPalette.Base, QColor(255, 255, 255))
-                pal.setColor(QPalette.AlternateBase, QColor(251, 251, 251))
-                pal.setColor(QPalette.ToolTipBase, QColor(255, 255, 255))
-                app.setPalette(pal)
-
-            # Minimal windows11 Light menu readability
-            if active_style == "windows11":
-                app.setStyleSheet(
-                    "QMenu { background: palette(Base); color: palette(Text); }"
-                )
-            else:
-                app.setStyleSheet("")
-            return
-
-        # Force Dark
-        if theme_name == "Dark":
-            if active_style == "fusion":
-                app.setPalette(make_fusion_dark_palette())
-                app.setStyleSheet("")
-                return
-
-            # Non-Fusion (windows, windows11, etc.)
-            base_dark = make_fusion_dark_palette()
-            native_pal = QApplication.style().standardPalette()
-
-            # Preserve native accent where possible
-            base_dark.setColor(QPalette.Highlight, native_pal.color(QPalette.Highlight))
-            base_dark.setColor(
-                QPalette.HighlightedText, native_pal.color(QPalette.HighlightedText)
-            )
-
-            # Ensure readable foregrounds on dark
-            base_dark.setColor(QPalette.WindowText, Qt.white)
-            base_dark.setColor(QPalette.Text, Qt.white)
-            base_dark.setColor(QPalette.ButtonText, Qt.white)
-            base_dark.setColor(QPalette.ToolTipText, Qt.white)
-            base_dark.setColor(
-                QPalette.ToolTipBase, QColor(70, 70, 70)
-            )  # added: consistent dark tooltip base
-
-            # Darken borders/separators and neutralize blue highlight for 'windows' style
-            if active_style == "windows":
-                # 3D/bevel roles unified to dark
-                base_dark.setColor(QPalette.Light, QColor(80, 80, 80))
-                base_dark.setColor(QPalette.Midlight, QColor(70, 70, 70))
-                base_dark.setColor(QPalette.Mid, QColor(60, 60, 60))
-                base_dark.setColor(QPalette.Dark, QColor(40, 40, 40))
-                base_dark.setColor(QPalette.Shadow, QColor(20, 20, 20))
-                # Panels/buttons/alternating rows
-                base_dark.setColor(QPalette.Button, QColor(53, 53, 53))
-                base_dark.setColor(QPalette.AlternateBase, QColor(45, 45, 45))
-                # Disabled foregrounds not too bright
-                base_dark.setColor(
-                    QPalette.Disabled, QPalette.Text, QColor(170, 170, 170)
-                )
-                base_dark.setColor(
-                    QPalette.Disabled, QPalette.WindowText, QColor(170, 170, 170)
-                )
-                base_dark.setColor(
-                    QPalette.Disabled, QPalette.ButtonText, QColor(170, 170, 170)
-                )
-                # Neutral gray highlight instead of blue
-                base_dark.setColor(QPalette.Highlight, QColor(70, 70, 70))
-                base_dark.setColor(QPalette.HighlightedText, Qt.white)
-
-            app.setPalette(base_dark)
-
-            # Minimal menu chrome in forced Dark for native styles: border + gray hover
-            if active_style in ("windows11", "windows"):
-                app.setStyleSheet(
-                    "QMenu {"
-                    " background: palette(Window);"
-                    " color: palette(Text);"
-                    " border: 1px solid rgb(70,70,70);"
-                    "}"
-                    "QMenu::item {"
-                    " background: transparent;"
-                    "}"
-                    "QMenu::item:selected {"
-                    " background: rgb(60,60,60);"
-                    "}"
-                )
-            else:
-                app.setStyleSheet("")
-            return
-
-        # Unknown theme fallback
-        app.setPalette(QPalette())
-        app.setStyleSheet("")
-
-    except Exception as e:
-        logging.exception(f"Exception in apply_style_and_theme: {e}")
-
-
 class service_signals(QObject):
     signal1 = Signal(str, list)
 
@@ -787,11 +582,9 @@ class new_version_checker(QThread):
 
 
 def _set_macos_activation_policy(accessory: bool):
-    """Switch NSApplication activation policy on macOS only.
+    """Switch NSApplication activation policy.
     accessory=True hides the Dock icon; accessory=False shows it.
     """
-    if sys.platform != "darwin":
-        return
     try:
         from AppKit import NSApplication, NSApplicationActivationPolicyAccessory, NSApplicationActivationPolicyRegular
         ns_app = NSApplication.sharedApplication()
@@ -810,22 +603,23 @@ def main():
 
     init_store()
     logging.info("DeClutter started")
-    if sys.platform == "darwin":
-        app.setWindowIcon(QIcon(":/images/icons/DeClutter_mac.png"))
-        # Override the Dock icon via NSApplication so the Python rocket
-        # does not appear when running from source (non-bundle).
-        try:
-            from AppKit import NSApplication, NSImage
-            ns_app = NSApplication.sharedApplication()
-            icon_path = os.path.join(os.path.dirname(__file__), "..", "assets", "DeClutter.icns")
-            icon_path = os.path.normpath(icon_path)
-            image = NSImage.alloc().initWithContentsOfFile_(icon_path)
-            if image:
-                ns_app.setApplicationIconImage_(image)
-        except Exception:
-            pass
-    else:
-        app.setWindowIcon(QIcon(":/images/icons/DeClutter.ico"))
+    app.setWindowIcon(QIcon(":/images/icons/DeClutter_mac.png"))
+    # Override the Dock icon via NSApplication so the Python rocket
+    # does not appear when running from source (non-bundle).
+    try:
+        from AppKit import NSApplication, NSImage
+        ns_app = NSApplication.sharedApplication()
+        icon_path = os.path.join(os.path.dirname(__file__), "..", "assets", "DeClutter.icns")
+        icon_path = os.path.normpath(icon_path)
+        image = NSImage.alloc().initWithContentsOfFile_(icon_path)
+        if image:
+            ns_app.setApplicationIconImage_(image)
+    except Exception:
+        pass
+
+    # Apply system dark/light palette and wire paletteChanged so the
+    # app follows macOS appearance changes live.
+    init_macos_theme(app)
 
     window = RulesWindow()
 

@@ -26,14 +26,7 @@
    <item row="1" column="0">
     <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0,0">
      <item row="7" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="1,5">
-       <item>
-        <widget class="QCheckBox" name="keepTagsCheckBox">
-         <property name="text">
-          <string>keep tags</string>
-         </property>
-        </widget>
-       </item>
+      <layout class="QHBoxLayout" name="horizontalLayout_6">
        <item>
         <widget class="QCheckBox" name="keepFolderStructureCheckBox">
          <property name="text">
@@ -156,21 +149,6 @@
          </item>
          <item>
           <property name="text">
-           <string>Tag</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Remove tags</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Clear all tags</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
            <string>Move to subfolder</string>
           </property>
          </item>
@@ -192,7 +170,7 @@
           </sizepolicy>
          </property>
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;You can use the following tokens:&lt;/p&gt;&lt;p&gt;&amp;lt;type&amp;gt; will be replaced with file type&lt;/p&gt;&lt;p&gt;&amp;lt;group:MyGroup&amp;gt; will be replaced with the (first) tag of the file in MyGroup or 'None' if the file doesn't have tags from MyGroup&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;You can use the following tokens:&lt;/p&gt;&lt;p&gt;&amp;lt;type&amp;gt; will be replaced with file type&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
@@ -205,7 +183,7 @@
           </sizepolicy>
          </property>
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;You can use the following tokens:&lt;/p&gt;&lt;p&gt;&amp;lt;type&amp;gt; will be replaced with file type&lt;/p&gt;&lt;p&gt;&amp;lt;group:MyGroup&amp;gt; will be replaced with the (first) tag of the file in MyGroup or 'None' if the file doesn't have tags from MyGroup&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;You can use the following tokens:&lt;/p&gt;&lt;p&gt;&amp;lt;type&amp;gt; will be replaced with file type&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
@@ -330,16 +308,6 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
-     <item row="11" column="0">
-      <widget class="TagTree" name="tagsView">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
-     </item>
      <item row="2" column="1">
       <layout class="QFormLayout" name="formLayout_3">
        <item row="0" column="0">
@@ -353,13 +321,6 @@ p, li { white-space: pre-wrap; }
         <widget class="QPushButton" name="sourceRemoveButton">
          <property name="text">
           <string>Remove</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QPushButton" name="allTaggedAddButton">
-         <property name="text">
-          <string>All tagged</string>
          </property>
         </widget>
        </item>
@@ -409,13 +370,6 @@ p, li { white-space: pre-wrap; }
         </spacer>
        </item>
       </layout>
-     </item>
-     <item row="12" column="0">
-      <widget class="QLabel" name="selectedTagsLabel">
-       <property name="text">
-        <string>Selected tags:</string>
-       </property>
-      </widget>
      </item>
     </layout>
    </item>
@@ -520,13 +474,7 @@ p, li { white-space: pre-wrap; }
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>TagTree</class>
-   <extends>QTreeView</extends>
-   <header location="global">..tag_tree</header>
-  </customwidget>
- </customwidgets>
+ <customwidgets/>
  <resources/>
  <connections/>
 </ui>
