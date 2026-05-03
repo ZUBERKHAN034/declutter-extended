@@ -46,6 +46,9 @@ from declutter.logging_utils import _refresh_log_file_handler
 
 from src.ui.macos_style import apply_macos_styling, init_macos_theme
 
+if sys.platform == "darwin":
+    from declutter.ui.ai_rule_dialog import AIRuleDialog
+
 
 class RulesWindow(QMainWindow):
     """Main application window for managing decluttering rules."""
@@ -54,6 +57,10 @@ class RulesWindow(QMainWindow):
         super(RulesWindow, self).__init__()
         self.ui = Ui_rulesWindow()
         self.ui.setupUi(self)
+
+        # Lock toolbar to top, disable moving/floating
+        self.ui.toolBar.setMovable(False)
+        self.ui.toolBar.setAllowedAreas(Qt.ToolBarArea.TopToolBarArea)
 
         self.minimizeAction = QAction()
         self.maximizeAction = QAction()
@@ -79,10 +86,12 @@ class RulesWindow(QMainWindow):
         # recolor_toolbar_icons() can re-tint them on theme change.
         _icon_map = {
             self.ui.actionAdd: ":/images/icons/plus.svg",
+            self.ui.actionAddAI: ":/images/icons/sparkle.svg",
             self.ui.actionDelete: ":/images/icons/trash.svg",
             self.ui.actionExecute: ":/images/icons/media-play.svg",
             self.ui.actionMove_up: ":/images/icons/arrow-thin-up.svg",
             self.ui.actionMove_down: ":/images/icons/arrow-thin-down.svg",
+            self.ui.actionSettings: ":/images/icons/gear.svg",
         }
         for action, res in _icon_map.items():
             action.setProperty("_dc_icon_resource", res)
@@ -118,6 +127,13 @@ class RulesWindow(QMainWindow):
         self.ui.moveDown.setVisible(False)
 
         self.ui.actionAdd.triggered.connect(self.add_rule)
+        if sys.platform == "darwin":
+            self.ui.actionAddAI.triggered.connect(self.add_ai_rule)
+            self._ai_dialog = AIRuleDialog(parent=self)
+            self._ai_dialog.rule_generated.connect(self._on_ai_rule_generated)
+            self._ai_dialog.open_settings_requested.connect(self.show_settings)
+        else:
+            self.ui.actionAddAI.setVisible(False)
         self.ui.actionDelete.triggered.connect(self.delete_rule)
         self.ui.actionExecute.triggered.connect(self.apply_rule)
         self.ui.actionOpen_log_file.triggered.connect(self.open_log_file)
@@ -323,6 +339,34 @@ class RulesWindow(QMainWindow):
             self.settings["rules"].append(rule)
         save_settings(self.settings)
         self.load_rules()
+
+    def add_ai_rule(self):
+        """Opens the AI rule generation dialog."""
+        self._ai_dialog.show()
+        self._ai_dialog.raise_()
+        self._ai_dialog.activateWindow()
+
+    def _on_ai_rule_generated(self, rule: dict):
+        """Open rule editor pre-populated with AI-generated rule for review."""
+        self.rule_window = RuleEditWindow()
+        self.rule_window.setWindowTitle("Review AI Generated Rule")
+        self.rule_window.load_rule(rule)
+        if self.rule_window.exec():
+            rule = self.rule_window.rule
+            rule["id"] = (
+                max([int(r["id"]) for r in self.settings["rules"] if "id" in r.keys()])
+                + 1
+                if self.settings["rules"]
+                else 1
+            )
+            self.settings["rules"].append(rule)
+            save_settings(self.settings)
+            self.load_rules()
+            self._ai_dialog.accept()
+        else:
+            self._ai_dialog.show()
+            self._ai_dialog.raise_()
+            self._ai_dialog.activateWindow()
 
     def edit_rule(self, r, c):
         """Opens the rule edit window to edit the selected rule."""

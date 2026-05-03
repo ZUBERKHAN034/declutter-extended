@@ -180,11 +180,15 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionAdd"/>
+   <addaction name="separator"/>
+   <addaction name="actionAddAI"/>
    <addaction name="actionDelete"/>
    <addaction name="actionExecute"/>
    <addaction name="separator"/>
    <addaction name="actionMove_up"/>
    <addaction name="actionMove_down"/>
+   <addaction name="separator"/>
+   <addaction name="actionSettings"/>
   </widget>
   <action name="actionAdd">
    <property name="checkable">
@@ -283,7 +287,29 @@
     <string>Down</string>
    </property>
   </action>
+  <action name="actionAddAI">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="DeClutter.qrc">
+     <normaloff>:/images/icons/sparkle.svg</normaloff>:/images/icons/sparkle.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Generate with AI</string>
+   </property>
+   <property name="toolTip">
+    <string>Generate a rule using AI</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+N</string>
+   </property>
+  </action>
   <action name="actionSettings">
+   <property name="icon">
+    <iconset resource="DeClutter.qrc">
+     <normaloff>:/images/icons/gear.svg</normaloff>:/images/icons/gear.svg</iconset>
+   </property>
    <property name="text">
     <string>Settings</string>
    </property>

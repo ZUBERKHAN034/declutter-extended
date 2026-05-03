@@ -31,6 +31,9 @@ PRIMITIVE_KEYS = {
     "date_type": 0,
     "rules_window_geometry": None,
     "rules_window_visible_on_exit": True,
+    "gemini_api_key": "",
+    "gemini_model": "gemini-3.1-flash-lite-preview",
+    "gemini_enabled": False,
 }
 
 

@@ -1,11 +1,42 @@
-from PySide6.QtWidgets import QDialog, QTableWidgetItem, QApplication, QMessageBox
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtWidgets import QDialog, QTableWidgetItem, QApplication, QMessageBox, QLineEdit, QComboBox
+from PySide6.QtCore import Qt, QSize, QThread, Signal as _Signal
 from declutter.config import VERSION
 from declutter.store import load_settings, save_settings
 from src.startup import is_enabled as startup_is_enabled, enable as startup_enable, disable as startup_disable
 
 from src.ui.ui_settings_dialog import Ui_settingsDialog
 from src.ui.macos_style import apply_macos_styling
+
+import sys
+
+if sys.platform == "darwin":
+    from declutter.ai.gemini_service import GeminiService, MODEL_CHOICES
+
+
+class _GeminiTestWorker(QThread):
+    """Background thread that verifies a Gemini API key."""
+
+    success = _Signal()
+    failure = _Signal(str)
+
+    def __init__(self, api_key: str, model: str, parent=None):
+        super().__init__(parent)
+        self._api_key = api_key
+        self._model = model
+
+    def run(self):
+        try:
+            svc = GeminiService(self._api_key, model=self._model)
+            # Minimal harmless prompt to verify connectivity
+            svc._client.models.generate_content(
+                model=svc._model,
+                contents="Hello",
+            )
+            self.success.emit()
+        except Exception as exc:
+            # Capture class name + message for better diagnostics
+            msg = f"{type(exc).__name__}: {exc}"
+            self.failure.emit(msg)
 
 
 class SettingsDialog(QDialog):
@@ -21,6 +52,7 @@ class SettingsDialog(QDialog):
                 Qt.TransformationMode.SmoothTransformation))
         apply_macos_styling(self)
         self._connect_signals()
+        self._setup_gemini_section()
         self.refresh()
 
     def _connect_signals(self):
@@ -28,6 +60,66 @@ class SettingsDialog(QDialog):
         self.ui.addFileTypeButton.clicked.connect(self.add_new_file_type)
         self.ui.fileTypesTable.cellChanged.connect(
             self.cell_changed, Qt.QueuedConnection)
+
+    def _setup_gemini_section(self):
+        """Hide AI section on non-macOS and wire up widgets."""
+        if sys.platform != "darwin":
+            self.ui.geminiGroupBox.setVisible(False)
+            return
+        for display, _ in MODEL_CHOICES.items():
+            self.ui.geminiModelCombo.addItem(display)
+        self.ui.geminiEnableCheckBox.toggled.connect(self._on_gemini_enabled_changed)
+        self.ui.geminiShowHideButton.toggled.connect(self._on_gemini_show_hide)
+        self.ui.geminiTestButton.clicked.connect(self._on_gemini_test)
+
+    def _on_gemini_enabled_changed(self, checked: bool):
+        self.ui.geminiModelCombo.setEnabled(checked)
+        self.ui.geminiKeyEdit.setEnabled(checked)
+        self.ui.geminiShowHideButton.setEnabled(checked)
+        self.ui.geminiTestButton.setEnabled(checked)
+        if not checked:
+            self.ui.geminiStatusLabel.setText("")
+
+    def _on_gemini_show_hide(self, checked: bool):
+        echo = QLineEdit.EchoMode.Normal if checked else QLineEdit.EchoMode.Password
+        self.ui.geminiKeyEdit.setEchoMode(echo)
+        self.ui.geminiShowHideButton.setText("Hide" if checked else "Show")
+
+    def _on_gemini_test(self):
+        key = self.ui.geminiKeyEdit.text().strip()
+        if not key:
+            self._set_gemini_status("No key entered", False)
+            return
+        self.ui.geminiTestButton.setEnabled(False)
+        self.ui.geminiTestButton.setText("Testing…")
+        model_id = MODEL_CHOICES[self.ui.geminiModelCombo.currentText()]
+        self._test_worker = _GeminiTestWorker(key, model_id, parent=self)
+        self._test_worker.success.connect(self._on_gemini_test_success)
+        self._test_worker.failure.connect(self._on_gemini_test_failure)
+        self._test_worker.finished.connect(self._on_gemini_test_finished)
+        self._test_worker.start()
+
+    def _on_gemini_test_success(self):
+        self._set_gemini_status("Connection successful", True)
+
+    def _on_gemini_test_failure(self, message: str):
+        # Truncate very long messages but keep useful detail
+        display = message if len(message) <= 120 else message[:117] + "…"
+        self._set_gemini_status(display, False)
+
+    def _on_gemini_test_finished(self):
+        self.ui.geminiTestButton.setEnabled(True)
+        self.ui.geminiTestButton.setText("Test Connection")
+        self._test_worker = None
+
+    def _set_gemini_status(self, text: str, ok: bool | None):
+        self.ui.geminiStatusLabel.setText(text)
+        if ok is True:
+            self.ui.geminiStatusLabel.setStyleSheet("color: green;")
+        elif ok is False:
+            self.ui.geminiStatusLabel.setStyleSheet("color: red;")
+        else:
+            self.ui.geminiStatusLabel.setStyleSheet("")
 
     def refresh(self):
         """Reload all widget values from current settings. Safe to call repeatedly."""
@@ -62,6 +154,17 @@ class SettingsDialog(QDialog):
             self.ui.startAtLoginCheckBox.setChecked(startup_is_enabled())
         except Exception:
             self.ui.startAtLoginCheckBox.setChecked(False)
+
+        if sys.platform == "darwin":
+            self.ui.geminiKeyEdit.setText(self.settings.get("gemini_api_key", ""))
+            model_id = self.settings.get("gemini_model", "gemini-3.1-flash-lite-preview")
+            for i in range(self.ui.geminiModelCombo.count()):
+                if MODEL_CHOICES[self.ui.geminiModelCombo.itemText(i)] == model_id:
+                    self.ui.geminiModelCombo.setCurrentIndex(i)
+                    break
+            enabled = self.settings.get("gemini_enabled", False)
+            self.ui.geminiEnableCheckBox.setChecked(enabled)
+            self._on_gemini_enabled_changed(enabled)
 
     def cell_changed(self, row, col):
         if col == 0:
@@ -147,6 +250,11 @@ class SettingsDialog(QDialog):
                 startup_disable()
         except Exception:
             pass
+
+        if sys.platform == "darwin":
+            self.settings["gemini_api_key"] = self.ui.geminiKeyEdit.text().strip()
+            self.settings["gemini_model"] = MODEL_CHOICES[self.ui.geminiModelCombo.currentText()]
+            self.settings["gemini_enabled"] = self.ui.geminiEnableCheckBox.isChecked()
 
         save_settings(self.settings)
         super(SettingsDialog, self).accept()

@@ -1,6 +1,8 @@
 import sys
 from os.path import normpath
 
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPalette, QColor
 from PySide6.QtWidgets import (
     QApplication,
     QDialog,
@@ -24,6 +26,11 @@ class RuleEditWindow(QDialog):
         self.ui = Ui_RuleEditWindow()
         self.ui.setupUi(self)
         apply_macos_styling(self)
+
+        self._apply_list_style()
+        QApplication.instance().paletteChanged.connect(
+            lambda _: self._apply_list_style()
+        )
 
         self.ui.buttonBox.accepted.connect(self.accept)
         self.ui.buttonBox.rejected.connect(self.reject)
@@ -58,6 +65,81 @@ class RuleEditWindow(QDialog):
 
         self.ui.ruleNameEdit.setFocus()
         self.action_change()
+
+    def _apply_list_style(self):
+        app = QApplication.instance()
+        is_dark = app.palette().color(
+            QPalette.ColorRole.Window
+        ).lightness() < 128
+
+        border_color = "#444444" if is_dark else "#aaaaaa"
+        bg = "#1e1e1e" if is_dark else "#ffffff"
+        alt_bg = "#2a2a2a" if is_dark else "#f5f5f5"
+        text_color = "#ffffff" if is_dark else "#000000"
+        selected_bg = "#3a3a3a" if is_dark else "#cce0ff"
+        selected_text = "#ffffff" if is_dark else "#000000"
+        hover_bg = "#333333" if is_dark else "#e8f0fe"
+
+        style = f"""
+            QListWidget {{
+                background-color: {bg};
+                alternate-background-color: {alt_bg};
+                color: {text_color};
+                border: 1.5px solid {border_color};
+                border-radius: 6px;
+                outline: none;
+                padding: 2px;
+            }}
+            QListWidget::item {{
+                padding: 6px 8px;
+                color: {text_color};
+                border: none;
+                border-radius: 4px;
+            }}
+            QListWidget::item:hover:!selected {{
+                background-color: {hover_bg};
+            }}
+            QListWidget::item:selected {{
+                background-color: {selected_bg};
+                color: {selected_text};
+            }}
+            QListWidget::item:selected:active {{
+                background-color: {selected_bg};
+                color: {selected_text};
+            }}
+            QListWidget::item:selected:!active {{
+                background-color: {selected_bg};
+                color: {selected_text};
+            }}
+        """
+
+        for widget in (self.ui.sourceListWidget,
+                       self.ui.conditionListWidget):
+            widget.setStyleSheet(style)
+            widget.setAlternatingRowColors(True)
+
+            palette = widget.palette()
+            palette.setColor(
+                QPalette.ColorRole.Base,
+                QColor(bg)
+            )
+            palette.setColor(
+                QPalette.ColorRole.AlternateBase,
+                QColor(alt_bg)
+            )
+            palette.setColor(
+                QPalette.ColorRole.Text,
+                QColor(text_color)
+            )
+            palette.setColor(
+                QPalette.ColorRole.Highlight,
+                QColor(selected_bg)
+            )
+            palette.setColor(
+                QPalette.ColorRole.HighlightedText,
+                QColor(selected_text)
+            )
+            widget.setPalette(palette)
 
     def show_advanced(self):
         self.ui.line.setVisible(True)

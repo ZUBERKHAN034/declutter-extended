@@ -34,6 +34,9 @@ if sys.platform != "darwin":
     def apply_system_theme(app):
         pass
 
+    def button_stylesheet(is_dark: bool = False) -> str:
+        return ""
+
 else:
     from PySide6.QtCore import Qt
     from PySide6.QtGui import QFont, QFontDatabase, QPalette, QColor, QPixmap, QPainter, QIcon
@@ -138,31 +141,23 @@ else:
             p.setColor(QPalette.ToolTipText, Qt.black)
         app.setPalette(p)
 
-    def macos_stylesheet(is_dark: bool = False) -> str:
-        """Generate a stylesheet for pill buttons and rounded cards on macOS."""
+    def button_stylesheet(is_dark: bool = False) -> str:
+        """Return the standard QPushButton stylesheet used across dialogs."""
         if is_dark:
             btn_bg = "rgba(255, 255, 255, 18)"
             btn_hover = "rgba(255, 255, 255, 25)"
             btn_pressed = "rgba(255, 255, 255, 12)"
-            card_bg = "rgba(60, 60, 60, 180)"
-            card_border = "rgba(255, 255, 255, 12)"
-            table_bg = "rgba(40, 40, 40, 200)"
-            table_alt = "rgba(50, 50, 50, 200)"
-            header_bg = "rgba(55, 55, 55, 220)"
             text_color = "#FFFFFF"
+            disabled_bg = "#48484A"
+            disabled_text = "#636366"
         else:
             btn_bg = "rgba(0, 0, 0, 8)"
             btn_hover = "rgba(0, 0, 0, 14)"
             btn_pressed = "rgba(0, 0, 0, 6)"
-            card_bg = "rgba(250, 250, 250, 220)"
-            card_border = "rgba(0, 0, 0, 8)"
-            table_bg = "rgba(255, 255, 255, 230)"
-            table_alt = "rgba(232, 232, 237, 255)"
-            header_bg = "rgba(240, 240, 240, 240)"
             text_color = "#1D1D1F"
-
+            disabled_bg = "#C7C7CC"
+            disabled_text = "#8E8E93"
         return f"""
-            /* Pill-shaped push buttons */
             QPushButton {{
                 background-color: {btn_bg};
                 border: none;
@@ -178,6 +173,10 @@ else:
             QPushButton:pressed {{
                 background-color: {btn_pressed};
             }}
+            QPushButton:disabled {{
+                background-color: {disabled_bg};
+                color: {disabled_text};
+            }}
             QPushButton:default {{
                 background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 rgba(0,122,255,220), stop:1 rgba(0,100,230,220));
@@ -187,7 +186,38 @@ else:
                 background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 rgba(0,122,255,240), stop:1 rgba(0,100,230,240));
             }}
+            QPushButton:default:disabled {{
+                background-color: {disabled_bg};
+                color: {disabled_text};
+            }}
+        """
 
+    def macos_stylesheet(is_dark: bool = False) -> str:
+        """Generate a stylesheet for pill buttons and rounded cards on macOS."""
+        if is_dark:
+            btn_bg = "rgba(255, 255, 255, 18)"
+            btn_hover = "rgba(255, 255, 255, 25)"
+            btn_pressed = "rgba(255, 255, 255, 12)"
+            card_bg = "rgba(60, 60, 60, 180)"
+            card_border = "rgba(255, 255, 255, 12)"
+            table_bg = "rgba(40, 40, 40, 200)"
+            table_alt = "rgba(50, 50, 50, 200)"
+            header_bg = "rgba(55, 55, 55, 220)"
+            text_color = "#FFFFFF"
+            sel_bg = "rgba(10, 132, 255, 0.40)"
+        else:
+            btn_bg = "rgba(0, 0, 0, 8)"
+            btn_hover = "rgba(0, 0, 0, 14)"
+            btn_pressed = "rgba(0, 0, 0, 6)"
+            card_bg = "rgba(250, 250, 250, 220)"
+            card_border = "rgba(0, 0, 0, 8)"
+            table_bg = "rgba(255, 255, 255, 230)"
+            table_alt = "rgba(232, 232, 237, 255)"
+            header_bg = "rgba(240, 240, 240, 240)"
+            text_color = "#1D1D1F"
+            sel_bg = "rgba(0, 122, 255, 0.25)"
+
+        return button_stylesheet(is_dark) + f"""
             /* Rounded cards / containers */
             QFrame#card, QWidget#card {{
                 background-color: {card_bg};
@@ -215,6 +245,32 @@ else:
                 border: none;
                 border-bottom: 1px solid {card_border};
                 font-weight: 600;
+            }}
+
+            /* List widget styling */
+            QListWidget {{
+                background-color: {table_bg};
+                alternate-background-color: {table_alt};
+                border: 1px solid {card_border};
+                border-radius: 10px;
+                color: {text_color};
+                show-decoration-selected: 0;
+            }}
+            QListWidget::item {{
+                padding: 4px 8px;
+                border-bottom: 1px solid {card_border};
+                background-color: transparent;
+                min-height: 28px;
+            }}
+            QListWidget::item:alternate {{
+                background-color: {table_alt};
+            }}
+            QListWidget::item:!alternate {{
+                background-color: {table_bg};
+            }}
+            QListWidget:!focus {{
+                alternate-background-color: {table_alt};
+                background-color: {table_bg};
             }}
 
             /* Scrollbars */
@@ -247,6 +303,8 @@ else:
                 background: transparent;
                 border: none;
                 spacing: 4px;
+                padding: 8px;
+                margin-left: 12px;
             }}
             QMenuBar {{
                 background: transparent;

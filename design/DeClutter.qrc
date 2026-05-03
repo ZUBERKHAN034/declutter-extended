@@ -10,6 +10,8 @@
     <file alias="arrow-thin-up.svg">../assets/icons/arrow-thin-up.svg</file>
     <file alias="document-new.svg">../assets/icons/document-new.svg</file>
     <file alias="plus.svg">../assets/icons/plus.svg</file>
+    <file alias="sparkle.svg">../assets/icons/sparkle.svg</file>
     <file alias="trash.svg">../assets/icons/trash.svg</file>
+    <file alias="gear.svg">../assets/icons/gear.svg</file>
   </qresource>
 </RCC>

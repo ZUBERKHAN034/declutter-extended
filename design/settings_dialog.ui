@@ -74,6 +74,108 @@
           </layout>
          </item>
          <item>
+          <widget class="QGroupBox" name="geminiGroupBox">
+           <property name="title">
+            <string/>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <item>
+             <widget class="QCheckBox" name="geminiEnableCheckBox">
+              <property name="text">
+               <string>Enable AI generation</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="geminiModelLayout">
+              <item>
+               <widget class="QLabel" name="geminiModelLabel">
+                <property name="text">
+                 <string>Model</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="geminiModelCombo"/>
+              </item>
+              <item>
+               <spacer name="geminiModelSpacer">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="geminiKeyLayout">
+              <item>
+               <widget class="QLabel" name="geminiKeyLabel">
+                <property name="text">
+                 <string>Gemini API Key</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="geminiKeyEdit">
+                <property name="echoMode">
+                 <enum>QLineEdit::EchoMode::Password</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="geminiShowHideButton">
+                <property name="text">
+                 <string>Show</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="geminiTestLayout">
+              <item>
+               <widget class="QPushButton" name="geminiTestButton">
+                <property name="text">
+                 <string>Test Connection</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="geminiStatusLabel">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="geminiTestSpacer">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
           <widget class="QCheckBox" name="startAtLoginCheckBox">
            <property name="text">
             <string>Launch at startup</string>
