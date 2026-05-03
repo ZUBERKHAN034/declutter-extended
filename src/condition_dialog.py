@@ -1,9 +1,17 @@
 import sys
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QApplication, QDialog, QMessageBox
+from PySide6.QtWidgets import QApplication, QDialog, QMessageBox, QDialogButtonBox
 
 from src.ui.ui_condition_dialog import Ui_Condition
 from src.ui.macos_style import apply_macos_styling
+from declutter.ui.style_helpers import (
+    style_dialog,
+    style_line_edit,
+    style_combo_box,
+    style_primary_btn,
+    style_secondary_btn,
+    reapply_styles,
+)
 
 from declutter.store import load_settings
 
@@ -17,10 +25,32 @@ class ConditionDialog(QDialog):
         apply_macos_styling(self)
         self.condition = {}
 
+        self._apply_styles()
+        QApplication.instance().paletteChanged.connect(
+            lambda _: reapply_styles(self, self._apply_styles)
+        )
+
         # Initial visibility
         self.update_visibility()
 
         self.ui.conditionCombo.currentIndexChanged.connect(self.update_visibility)
+
+    def _apply_styles(self):
+        """Apply design-token styling. Re-runs on dark/light switch."""
+        style_dialog(self)
+        for le in (self.ui.filemask, self.ui.age, self.ui.size):
+            style_line_edit(le)
+        for cb in (self.ui.conditionCombo, self.ui.nameCombo,
+                   self.ui.ageCombo, self.ui.ageUnitsCombo,
+                   self.ui.sizeCombo, self.ui.sizeUnitsCombo,
+                   self.ui.typeSwitchCombo, self.ui.typeCombo):
+            style_combo_box(cb)
+        ok_btn = self.ui.buttonBox.button(QDialogButtonBox.StandardButton.Ok)
+        if ok_btn is not None:
+            style_primary_btn(ok_btn)
+        cancel_btn = self.ui.buttonBox.button(QDialogButtonBox.StandardButton.Cancel)
+        if cancel_btn is not None:
+            style_secondary_btn(cancel_btn)
 
     def update_visibility(self):
         """

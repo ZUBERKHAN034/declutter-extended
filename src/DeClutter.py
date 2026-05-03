@@ -45,6 +45,13 @@ from declutter.file_utils import open_file
 from declutter.logging_utils import _refresh_log_file_handler
 
 from src.ui.macos_style import apply_macos_styling, init_macos_theme
+from declutter.ui.style_helpers import (
+    style_dialog,
+    style_table_widget,
+    style_secondary_btn,
+    style_primary_btn,
+    reapply_styles,
+)
 
 if sys.platform == "darwin":
     from declutter.ui.ai_rule_dialog import AIRuleDialog
@@ -103,6 +110,11 @@ class RulesWindow(QMainWindow):
         for action, res in _icon_map.items():
             action.setIcon(recolor_icon(res, icon_color))
 
+        self._apply_styles()
+        QApplication.instance().paletteChanged.connect(
+            lambda _: reapply_styles(self, self._apply_styles)
+        )
+
         self.ui.addRule.clicked.connect(self.add_rule)
         self.load_rules()
         self.ui.rulesTable.cellDoubleClicked.connect(self.edit_rule)
@@ -159,6 +171,12 @@ class RulesWindow(QMainWindow):
         self.instanced_thread = new_version_checker(self)
         self.instanced_thread.start()
         self.instanced_thread.version.connect(self.suggest_download)
+
+    def _apply_styles(self):
+        """Apply design-token styling. Re-runs on dark/light switch."""
+        style_dialog(self)
+        style_table_widget(self.ui.rulesTable)
+        # Toolbar is intentionally left untouched per project rules
 
     def suggest_download(self, version):
         """Suggests downloading a new version of the application if available."""
@@ -643,6 +661,12 @@ def main():
 
     app = QApplication(sys.argv)
     QApplication.setQuitOnLastWindowClosed(False)
+
+    if sys.platform == "darwin":
+        app.setStyle("Fusion")
+        from PySide6.QtGui import QFont
+        app.setFont(QFont("SF Pro Text", 13))
+
     from declutter.store import init_store
 
     init_store()

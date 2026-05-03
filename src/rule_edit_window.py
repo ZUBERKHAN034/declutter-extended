@@ -15,6 +15,18 @@ from src.ui.ui_list_dialog import Ui_listDialog
 from src.ui.ui_rule_edit_window import Ui_RuleEditWindow
 from src.ui.macos_style import apply_macos_styling
 from src.condition_dialog import ConditionDialog
+from declutter.ui.style_helpers import (
+    style_dialog,
+    style_line_edit,
+    style_combo_box,
+    style_checkbox,
+    style_list_widget,
+    style_primary_btn,
+    style_secondary_btn,
+    style_section_label,
+    style_separator,
+    reapply_styles,
+)
 
 from declutter.rules import get_files_affected_by_rule
 
@@ -27,9 +39,9 @@ class RuleEditWindow(QDialog):
         self.ui.setupUi(self)
         apply_macos_styling(self)
 
-        self._apply_list_style()
+        self._apply_styles()
         QApplication.instance().paletteChanged.connect(
-            lambda _: self._apply_list_style()
+            lambda _: reapply_styles(self, self._apply_styles)
         )
 
         self.ui.buttonBox.accepted.connect(self.accept)
@@ -66,80 +78,50 @@ class RuleEditWindow(QDialog):
         self.ui.ruleNameEdit.setFocus()
         self.action_change()
 
-    def _apply_list_style(self):
-        app = QApplication.instance()
-        is_dark = app.palette().color(
-            QPalette.ColorRole.Window
-        ).lightness() < 128
+    def _apply_styles(self):
+        """Apply design-token styling. Re-runs on dark/light switch."""
+        style_dialog(self)
 
-        border_color = "#444444" if is_dark else "#aaaaaa"
-        bg = "#1e1e1e" if is_dark else "#ffffff"
-        alt_bg = "#2a2a2a" if is_dark else "#f5f5f5"
-        text_color = "#ffffff" if is_dark else "#000000"
-        selected_bg = "#3a3a3a" if is_dark else "#cce0ff"
-        selected_text = "#ffffff" if is_dark else "#000000"
-        hover_bg = "#333333" if is_dark else "#e8f0fe"
+        # Lists
+        style_list_widget(self.ui.sourceListWidget)
+        style_list_widget(self.ui.conditionListWidget)
 
-        style = f"""
-            QListWidget {{
-                background-color: {bg};
-                alternate-background-color: {alt_bg};
-                color: {text_color};
-                border: 1.5px solid {border_color};
-                border-radius: 6px;
-                outline: none;
-                padding: 2px;
-            }}
-            QListWidget::item {{
-                padding: 6px 8px;
-                color: {text_color};
-                border: none;
-                border-radius: 4px;
-            }}
-            QListWidget::item:hover:!selected {{
-                background-color: {hover_bg};
-            }}
-            QListWidget::item:selected {{
-                background-color: {selected_bg};
-                color: {selected_text};
-            }}
-            QListWidget::item:selected:active {{
-                background-color: {selected_bg};
-                color: {selected_text};
-            }}
-            QListWidget::item:selected:!active {{
-                background-color: {selected_bg};
-                color: {selected_text};
-            }}
-        """
+        # Line edits
+        for le in (self.ui.ruleNameEdit, self.ui.targetFolderEdit,
+                   self.ui.subfolderEdit, self.ui.renameEdit,
+                   self.ui.numberNewestEdit):
+            style_line_edit(le)
 
-        for widget in (self.ui.sourceListWidget,
-                       self.ui.conditionListWidget):
-            widget.setStyleSheet(style)
-            widget.setAlternatingRowColors(True)
+        # Combo boxes
+        for cb in (self.ui.conditionSwitchComboBox, self.ui.actionComboBox,
+                   self.ui.overwriteComboBox):
+            style_combo_box(cb)
 
-            palette = widget.palette()
-            palette.setColor(
-                QPalette.ColorRole.Base,
-                QColor(bg)
-            )
-            palette.setColor(
-                QPalette.ColorRole.AlternateBase,
-                QColor(alt_bg)
-            )
-            palette.setColor(
-                QPalette.ColorRole.Text,
-                QColor(text_color)
-            )
-            palette.setColor(
-                QPalette.ColorRole.Highlight,
-                QColor(selected_bg)
-            )
-            palette.setColor(
-                QPalette.ColorRole.HighlightedText,
-                QColor(selected_text)
-            )
-            widget.setPalette(palette)
+        # Checkboxes
+        for chk in (self.ui.keepFolderStructureCheckBox,
+                    self.ui.enabledCheckBox, self.ui.recursiveCheckBox,
+                    self.ui.ignoreNewestCheckBox):
+            style_checkbox(chk)
+
+        # Secondary buttons
+        for btn in (self.ui.folderBrowseButton, self.ui.folderAddButton,
+                    self.ui.sourceRemoveButton, self.ui.conditionAddButton,
+                    self.ui.conditionRemoveButton, self.ui.conditionSaveButton,
+                    self.ui.conditionLoadButton, self.ui.advancedButton,
+                    self.ui.testButton):
+            style_secondary_btn(btn)
+
+        # Dialog buttons
+        from PySide6.QtWidgets import QDialogButtonBox
+        save_btn = self.ui.buttonBox.button(QDialogButtonBox.StandardButton.Save)
+        if save_btn is not None:
+            style_primary_btn(save_btn)
+        cancel_btn = self.ui.buttonBox.button(QDialogButtonBox.StandardButton.Cancel)
+        if cancel_btn is not None:
+            style_secondary_btn(cancel_btn)
+
+        style_section_label(self.ui.newestLabel)
+        style_separator(self.ui.line)
 
     def show_advanced(self):
         self.ui.line.setVisible(True)

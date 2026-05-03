@@ -21,7 +21,16 @@ from PySide6.QtWidgets import QSizePolicy
 from PySide6.QtWidgets import QGraphicsOpacityEffect
 
 from declutter.store import load_settings, list_file_types, list_rules
-from src.ui.macos_style import button_stylesheet
+from declutter.ui.design_tokens import C, is_dark
+from declutter.ui.style_helpers import (
+    style_dialog,
+    style_text_edit,
+    style_primary_btn,
+    style_secondary_btn,
+    style_status_label,
+    style_section_label,
+    reapply_styles,
+)
 
 _EXAMPLES = [
     "Move all PDFs older than 7 days to a Documents folder",
@@ -143,13 +152,8 @@ class ExamplesBanner(QWidget):
         self._timer.stop()
 
     def _format_example(self, text: str) -> str:
-        is_dark = QApplication.instance().palette().color(
-            QPalette.ColorRole.Window
-        ).lightness() < 128
-
-        prefix_color = "#4a9eff" if is_dark else "#0066cc"
-        text_color = "#aaaaaa" if is_dark else "#666666"
-
+        prefix_color = C.accent()
+        text_color = C.text_secondary()
         return (
             f'<span style="color:{prefix_color}; '
             f'font-weight:600;">Try →</span> '
@@ -393,7 +397,10 @@ class AIRuleDialog(QDialog):
         self._generated_rule: dict | None = None
 
         self._build_ui()
-        self._apply_styling()
+        self._apply_styles()
+        QApplication.instance().paletteChanged.connect(
+            lambda _: reapply_styles(self, self._apply_styles)
+        )
         self._check_ai_availability()
 
     # -- UI construction --------------------------------------------------
@@ -489,47 +496,18 @@ class AIRuleDialog(QDialog):
 
         self.setMinimumSize(500, 480)
 
-    def _apply_styling(self):
-        """Apply styling that automatically adapts to light/dark theme via palette()."""
-        self.setStyleSheet("""
-            QDialog {
-                background-color: palette(window);
-                color: palette(window-text);
-            }
-            QTextEdit {
-                border: 1px solid palette(mid);
-                border-radius: 6px;
-                padding: 8px;
-                background-color: palette(base);
-                color: palette(text);
-            }
-            QTextEdit:focus {
-                border: 1px solid palette(highlight);
-            }
-            QLabel {
-                color: palette(window-text);
-                background: transparent;
-            }
-        """)
-
-        dark = self.palette().color(QPalette.ColorRole.Window).lightness() < 128
-        btn_ss = button_stylesheet(dark)
-        self._generate_btn.setStyleSheet(btn_ss)
-        self._button_box.button(QDialogButtonBox.Ok).setStyleSheet(btn_ss)
-        self._button_box.button(QDialogButtonBox.Cancel).setStyleSheet(btn_ss)
-        self._open_settings_btn.setStyleSheet(btn_ss)
-
-    def _on_palette_changed(self, palette):
-        """Re-apply styling when system light/dark mode changes while dialog is open."""
-        self._apply_styling()
-        # Force Qt to re-evaluate palette() keywords in stylesheets
-        self.style().unpolish(self)
-        self.style().polish(self)
-        self.update()
-        for widget in self.findChildren(QWidget):
-            self.style().unpolish(widget)
-            self.style().polish(widget)
-            widget.update()
+    def _apply_styles(self):
+        """Apply design-token styling. Re-runs on dark/light switch."""
+        style_dialog(self)
+        style_text_edit(self._desc_edit)
+        style_text_edit(self._preview_edit)
+        style_primary_btn(self._generate_btn)
+        style_primary_btn(self._button_box.button(QDialogButtonBox.Ok))
+        style_secondary_btn(self._button_box.button(QDialogButtonBox.Cancel))
+        style_secondary_btn(self._open_settings_btn)
+        # Status re-applied by _set_status; refresh banner labels
+        if hasattr(self, "_examples_banner") and self._examples_banner is not None:
+            self._examples_banner._apply_label_style()
 
     # -- API key check ----------------------------------------------------
 
@@ -551,16 +529,11 @@ class AIRuleDialog(QDialog):
     def showEvent(self, event):
         super().showEvent(event)
         self._check_ai_availability()
-        QApplication.instance().paletteChanged.connect(self._on_palette_changed)
         self._examples_banner._timer.start()
 
     def hideEvent(self, event):
         super().hideEvent(event)
         self._examples_banner._timer.stop()
-        try:
-            QApplication.instance().paletteChanged.disconnect(self._on_palette_changed)
-        except RuntimeError:
-            pass
 
     def _on_open_settings(self):
         self.open_settings_requested.emit()
@@ -658,16 +631,16 @@ class AIRuleDialog(QDialog):
 
     def _set_status(self, text: str, error: bool | str | None):
         self._status_label.setText(text)
-        color = ""
         if error is True:
-            color = "color: #d32f2f; background: transparent;"
+            status = "error"
         elif error == "warning":
-            color = "color: #f57c00; background: transparent;"
+            status = "warning"
         elif error is False:
-            color = "color: #2e7d32; background: transparent;"
-        current = self._status_label.styleSheet()
-        if current != color:
-            self._status_label.setStyleSheet(color)
+            status = "success"
+        else:
+            status = "normal"
+        self._last_status = status
+        style_status_label(self._status_label, status=status)
 
 
 if __name__ == "__main__":

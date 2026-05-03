@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QDialog, QTableWidgetItem, QApplication, QMessageBox, QLineEdit, QComboBox
+from PySide6.QtWidgets import QDialog, QTableWidgetItem, QApplication, QMessageBox, QLineEdit, QComboBox, QRadioButton, QDialogButtonBox
 from PySide6.QtCore import Qt, QSize, QThread, Signal as _Signal
 from declutter.config import VERSION
 from declutter.store import load_settings, save_settings
@@ -6,6 +6,20 @@ from src.startup import is_enabled as startup_is_enabled, enable as startup_enab
 
 from src.ui.ui_settings_dialog import Ui_settingsDialog
 from src.ui.macos_style import apply_macos_styling
+from declutter.ui.style_helpers import (
+    style_dialog,
+    style_tab_widget,
+    style_table_widget,
+    style_group_box,
+    style_line_edit,
+    style_combo_box,
+    style_checkbox,
+    style_radio_button,
+    style_primary_btn,
+    style_secondary_btn,
+    style_status_label,
+    reapply_styles,
+)
 
 import sys
 
@@ -51,9 +65,39 @@ class SettingsDialog(QDialog):
                 QSize(80, 80), Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation))
         apply_macos_styling(self)
+        self._apply_styles()
+        QApplication.instance().paletteChanged.connect(
+            lambda _: reapply_styles(self, self._apply_styles)
+        )
         self._connect_signals()
         self._setup_gemini_section()
         self.refresh()
+
+    def _apply_styles(self):
+        """Apply design-token styling. Re-runs on dark/light switch."""
+        style_dialog(self)
+        style_tab_widget(self.ui.tabWidget)
+        style_table_widget(self.ui.fileTypesTable)
+        style_group_box(self.ui.geminiGroupBox)
+        style_group_box(self.ui.dateDefGroupBox)
+        style_line_edit(self.ui.ruleExecIntervalEdit)
+        style_line_edit(self.ui.geminiKeyEdit)
+        style_combo_box(self.ui.geminiModelCombo)
+        style_checkbox(self.ui.geminiEnableCheckBox)
+        style_checkbox(self.ui.startAtLoginCheckBox)
+        for rb in self.ui.dateDefGroupBox.findChildren(QRadioButton):
+            style_radio_button(rb)
+        style_secondary_btn(self.ui.geminiShowHideButton)
+        style_secondary_btn(self.ui.geminiTestButton)
+        style_secondary_btn(self.ui.addFileTypeButton)
+        ok_btn = self.ui.buttonBox.button(QDialogButtonBox.StandardButton.Ok)
+        if ok_btn is not None:
+            style_primary_btn(ok_btn)
+        cancel_btn = self.ui.buttonBox.button(QDialogButtonBox.StandardButton.Cancel)
+        if cancel_btn is not None:
+            style_secondary_btn(cancel_btn)
+        status = getattr(self, "_last_gemini_status", "normal")
+        style_status_label(self.ui.geminiStatusLabel, status=status)
 
     def _connect_signals(self):
         """One-time signal connections — called only from __init__."""
@@ -115,11 +159,13 @@ class SettingsDialog(QDialog):
     def _set_gemini_status(self, text: str, ok: bool | None):
         self.ui.geminiStatusLabel.setText(text)
         if ok is True:
-            self.ui.geminiStatusLabel.setStyleSheet("color: green;")
+            status = "success"
         elif ok is False:
-            self.ui.geminiStatusLabel.setStyleSheet("color: red;")
+            status = "error"
         else:
-            self.ui.geminiStatusLabel.setStyleSheet("")
+            status = "normal"
+        self._last_gemini_status = status
+        style_status_label(self.ui.geminiStatusLabel, status=status)
 
     def refresh(self):
         """Reload all widget values from current settings. Safe to call repeatedly."""
