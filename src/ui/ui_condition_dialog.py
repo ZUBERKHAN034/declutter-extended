@@ -33,7 +33,8 @@ class Ui_Condition(object):
         sizePolicy.setHeightForWidth(Condition.sizePolicy().hasHeightForWidth())
         Condition.setSizePolicy(sizePolicy)
         icon = QIcon()
-        icon.addFile(u":/images/icons/DeClutter_mac.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        import os
+        icon.addFile(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "new_icon.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         Condition.setWindowIcon(icon)
         self.horizontalLayout = QHBoxLayout(Condition)
         self.horizontalLayout.setObjectName(u"horizontalLayout")

@@ -60,8 +60,9 @@ class SettingsDialog(QDialog):
         self.ui.setupUi(self)
         self.ui.aboutVersionLabel.setText(f"Version {VERSION}")
         from PySide6.QtGui import QPixmap
+        import os
         self.ui.aboutLogoLabel.setPixmap(
-            QPixmap(u":/images/icons/DeClutter_mac.png").scaled(
+            QPixmap(os.path.join(os.path.dirname(__file__), "..", "assets", "new_icon.png")).scaled(
                 QSize(80, 80), Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation))
         apply_macos_styling(self)

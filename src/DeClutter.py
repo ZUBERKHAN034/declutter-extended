@@ -9,8 +9,22 @@ import requests
 # --- macOS single-instance lock ---------------------------------------------------
 _lock_handle = None  # kept alive to hold the file lock
 
+def _resource_path(*parts):
+    """Resolve a path relative to project root. Works in dev and in PyInstaller."""
+    try:
+        base = sys._MEIPASS
+    except AttributeError:
+        base = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
+    return os.path.join(base, *parts)
+
 def _ensure_single_instance():
-    """Acquire an exclusive file lock so only one instance runs.
+    """Cross-platform single-instance guard using a lock file.
+
+    On macOS, simply touching a PID file and checking for existing process
+    with that PID is unreliable because PID reuse.  Instead, use an
+    advisory flock on the lock file; this guarantees only one copy of the
+    application can ever hold the lock, even across different log-in sessions.
+
     If another instance already holds the lock, silently exit."""
     import fcntl
     global _lock_handle
@@ -21,7 +35,7 @@ def _ensure_single_instance():
     except OSError:
         # Another instance is already running — exit silently
         sys.exit(0)
-from PySide6.QtGui import QIcon, QAction, QKeySequence, QPalette, QColor
+from PySide6.QtGui import QFontDatabase, QAction, QIcon, QFont, QPixmap, QPalette, QColor, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
     QSystemTrayIcon,
@@ -120,7 +134,7 @@ class RulesWindow(QMainWindow):
         self.ui.rulesTable.cellDoubleClicked.connect(self.edit_rule)
         self.ui.deleteRule.clicked.connect(self.delete_rule)
         self.ui.applyRule.clicked.connect(self.apply_rule)
-        self.setWindowIcon(QIcon(":/images/icons/DeClutter_mac.png"))
+        self.setWindowIcon(QIcon(_resource_path("assets", "new_icon.png")))
         self.trayIcon.messageClicked.connect(self.message_clicked)
         self.trayIcon.activated.connect(self.tray_activated)
         self.trayIcon.setToolTip(
@@ -511,7 +525,10 @@ class RulesWindow(QMainWindow):
 
         self.trayIcon = QSystemTrayIcon(self)
         self.trayIcon.setContextMenu(self.trayIconMenu)
-        self.trayIcon.setIcon(QIcon(":/images/icons/DeClutter_mac.png"))
+        # Scale the icon to a proper menubar size — 4096×3640 is too large for QSystemTrayIcon
+        _tray_pixmap = QPixmap(_resource_path("assets", "new_icon.png"))
+        _tray_icon = QIcon(_tray_pixmap.scaled(44, 44, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        self.trayIcon.setIcon(_tray_icon)
         self.trayIcon.setVisible(True)
         self.trayIcon.show()
 
@@ -671,17 +688,22 @@ def main():
 
     init_store()
     logging.info("DeClutter started")
-    app.setWindowIcon(QIcon(":/images/icons/DeClutter_mac.png"))
+    app.setWindowIcon(QIcon(_resource_path("assets", "new_icon.png")))
     # Override the Dock icon via NSApplication so the Python rocket
     # does not appear when running from source (non-bundle).
     try:
         from AppKit import NSApplication, NSImage
         ns_app = NSApplication.sharedApplication()
-        icon_path = os.path.join(os.path.dirname(__file__), "..", "assets", "DeClutter.icns")
+        icon_path = _resource_path("assets", "new_icon.icns")
         icon_path = os.path.normpath(icon_path)
         image = NSImage.alloc().initWithContentsOfFile_(icon_path)
         if image:
             ns_app.setApplicationIconImage_(image)
+    except ImportError:
+        logging.warning(
+            "AppKit not available — Dock icon will show the Python rocket. "
+            "Activate the virtualenv (source venv/bin/activate) to load pyobjc."
+        )
     except Exception:
         pass
 

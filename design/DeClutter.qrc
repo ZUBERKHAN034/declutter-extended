@@ -5,7 +5,7 @@
     <file alias="media-pause.svg">../assets/icons/media-pause.svg</file>
     <file alias="media-play.svg">../assets/icons/media-play.svg</file>
     <file alias="brush.svg">../assets/icons/brush.svg</file>
-    <file alias="DeClutter_mac.png">../assets/DeClutter.iconset/icon_128x128.png</file>
+    <file alias="DeClutter_mac.png">../assets/new_icon.png</file>
     <file alias="arrow-thin-down.svg">../assets/icons/arrow-thin-down.svg</file>
     <file alias="arrow-thin-up.svg">../assets/icons/arrow-thin-up.svg</file>
     <file alias="document-new.svg">../assets/icons/document-new.svg</file>

@@ -34,7 +34,8 @@ class Ui_rulesWindow(object):
         sizePolicy.setHeightForWidth(rulesWindow.sizePolicy().hasHeightForWidth())
         rulesWindow.setSizePolicy(sizePolicy)
         icon = QIcon()
-        icon.addFile(u":/images/icons/DeClutter_mac.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        import os
+        icon.addFile(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "new_icon.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         rulesWindow.setWindowIcon(icon)
         self.actionAdd = QAction(rulesWindow)
         self.actionAdd.setObjectName(u"actionAdd")

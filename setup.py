@@ -22,7 +22,7 @@ build_exe_options = {
     ],
     "packages": ["os", "sys", "collections", "PySide6", "declutter", "requests", "certifi", "charset_normalizer"],
     "include_files": [
-        os.path.join("assets", "DeClutter.icns"),
+        os.path.join("assets", "new_icon.icns"),
     ],
     "optimize": 2
 }
@@ -35,7 +35,7 @@ setup(
     executables=[
         Executable(
             os.path.join("src", "DeClutter.py"),
-            icon=os.path.join("assets", "DeClutter.icns")
+            icon=os.path.join("assets", "new_icon.icns")
         )
     ]
 )
