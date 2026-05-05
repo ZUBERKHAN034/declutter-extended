@@ -13,6 +13,8 @@
     <file alias="plus.svg">../assets/icons/plus.svg</file>
     <file alias="sparkle.svg">../assets/icons/sparkle.svg</file>
     <file alias="trash.svg">../assets/icons/trash.svg</file>
+    <file alias="duplicate.svg">../assets/icons/duplicate.svg</file>
+    <file alias="question-circle.svg">../assets/icons/question-circle.svg</file>
     <file alias="gear.svg">../assets/icons/gear.svg</file>
   </qresource>
 </RCC>

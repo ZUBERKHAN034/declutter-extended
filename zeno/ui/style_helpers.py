@@ -1,5 +1,5 @@
 """All styling logic lives here. Every dialog calls these — no inline stylesheets."""
-from PySide6.QtWidgets import QWidget, QPushButton, QLineEdit, QTextEdit, QComboBox, QListWidget, QTableWidget, QCheckBox, QLabel, QTabWidget, QFrame, QScrollArea
+from PySide6.QtWidgets import QWidget, QPushButton, QLineEdit, QTextEdit, QComboBox, QListWidget, QListWidgetItem, QTableWidget, QCheckBox, QLabel, QTabWidget, QFrame, QScrollArea
 from PySide6.QtGui import QPalette, QColor, QFont
 from PySide6.QtCore import Qt
 from zeno.ui.design_tokens import C, R, is_dark
@@ -65,7 +65,6 @@ def style_combo_box(w: QComboBox):
 
 
 def style_list_widget(w: QListWidget):
-    w.setAlternatingRowColors(True)
     # Remove native frame so macOS doesn't draw a square border on top
     w.setFrameShape(QFrame.Shape.NoFrame)
     # Force Qt to honour the stylesheet for background painting
@@ -73,20 +72,62 @@ def style_list_widget(w: QListWidget):
     # Make the viewport transparent so the rounded outer border isn't
     # covered by a rectangular viewport fill
     w.viewport().setAutoFillBackground(False)
+    w.setAlternatingRowColors(True)
     w.setStyleSheet(f"""
-        QListWidget {{ background-color: {C.row_bg()}; alternate-background-color: {C.row_alt()}; color: {C.text()}; border: 1.5px solid {C.border()}; border-radius: {R.card}; outline: none; padding: 3px; font-family: "SF Pro Text"; font-size: 13px; }}
-        QListWidget::item {{ padding: 7px 10px; border-radius: {R.inner}; color: {C.text()}; }}
+        QListWidget {{ background-color: {C.row_bg()}; color: {C.text()}; border: 1.5px solid {C.border()}; border-radius: {R.card}; outline: none; padding: 3px; font-family: "SF Pro Text"; font-size: 13px; }}
+        QListWidget::item {{ padding: 7px 10px; border-radius: {R.inner}; color: {C.text()}; background: {C.row_alt()}; }}
+        QListWidget::item:alternate {{ background: {C.row_bg()}; }}
         QListWidget::item:hover:!selected {{ background-color: {C.row_hover()}; }}
         QListWidget::item:selected {{ background-color: {C.row_selected()}; color: {C.row_selected_text()}; }}
         QListWidget::item:selected:!active {{ background-color: {C.row_selected()}; color: {C.row_selected_text()}; }}
     """)
     p = w.palette()
-    p.setColor(QPalette.ColorRole.Base, QColor(C.row_bg()))
-    p.setColor(QPalette.ColorRole.AlternateBase, QColor(C.row_alt()))
     p.setColor(QPalette.ColorRole.Text, QColor(C.text()))
     p.setColor(QPalette.ColorRole.Highlight, QColor(C.row_selected()))
     p.setColor(QPalette.ColorRole.HighlightedText, QColor(C.row_selected_text()))
     w.setPalette(p)
+
+
+def _visible_row_capacity(list_widget: QListWidget) -> int:
+    """Return how many rows fit in the current viewport without scrolling."""
+    viewport = list_widget.viewport()
+    if not viewport:
+        return 6
+    h = viewport.height()
+    rh = list_widget.sizeHintForRow(0)
+    if rh <= 0:
+        rh = 30
+    return max(6, h // rh)
+
+
+def populate_styled_list(list_widget: QListWidget, items, fill_empty_rows: bool = True):
+    """Populate a QListWidget, relying on style_list_widget's alternating palette."""
+    list_widget.clear()
+    all_items = list(items) if items else []
+
+    if not all_items:
+        if fill_empty_rows:
+            placeholder = QListWidgetItem("No files affected by this rule.")
+            placeholder.setFlags(Qt.NoItemFlags)
+            placeholder.setForeground(QColor(C.text_secondary()))
+            list_widget.addItem(placeholder)
+            start = 1
+        else:
+            start = 0
+    else:
+        for text in all_items:
+            item = QListWidgetItem(text)
+            item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+            list_widget.addItem(item)
+        start = len(all_items)
+
+    # Pad with empty rows to fill the visible area (no scrolling until real items overflow)
+    cap = _visible_row_capacity(list_widget)
+    pad = 50 if fill_empty_rows else max(0, cap - start)
+    for _ in range(start, start + pad):
+        empty = QListWidgetItem("")
+        empty.setFlags(Qt.NoItemFlags)
+        list_widget.addItem(empty)
 
 
 def style_table_widget(w: QTableWidget):
@@ -204,7 +245,11 @@ def style_toolbar(tb):
 
 def style_separator(w):
     w.setStyleSheet(f"""
-        QFrame {{ color: {C.border()}; }}
+        QFrame {{
+            border: none;
+            border-top: 1px solid {C.border()};
+            margin: 6px 0px;
+        }}
     """)
 
 
@@ -214,3 +259,112 @@ def reapply_styles(root: QWidget, apply_fn):
     for w in root.findChildren(QWidget):
         w.update()
     root.update()
+
+
+def styled_confirm_dialog(
+    parent,
+    title: str,
+    message: str,
+    confirm_text: str = "Yes",
+    cancel_text: str = "Cancel",
+    destructive: bool = False,
+    icon_resource: str = ":/images/icons/question-circle.svg",
+) -> bool:
+    """Show a styled confirmation dialog that matches the design system.
+
+    Returns True if the user confirmed, False otherwise.
+    """
+    from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
+    from PySide6.QtCore import Qt, QSize
+    from PySide6.QtGui import QPixmap, QPainter, QColor as _QColor
+    from PySide6.QtSvg import QSvgRenderer
+    from PySide6.QtCore import QFile, QIODevice
+
+    dlg = QDialog(parent)
+    dlg.setWindowTitle(title)
+    dlg.setFixedWidth(380)
+    dlg.setModal(True)
+
+    # --- Load and recolor icon ------------------------------------------------
+    icon_color = _QColor(C.text())
+    f = QFile(icon_resource)
+    icon_pixmap = None
+    if f.open(QIODevice.ReadOnly):
+        data = f.readAll()
+        f.close()
+        renderer = QSvgRenderer(data)
+        if renderer.isValid():
+            px_size = 96
+            icon_pixmap = QPixmap(QSize(px_size, px_size))
+            icon_pixmap.fill(Qt.transparent)
+            painter = QPainter(icon_pixmap)
+            renderer.render(painter)
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+            painter.fillRect(icon_pixmap.rect(), icon_color)
+            painter.end()
+            icon_pixmap.setDevicePixelRatio(2.0)
+
+    # --- Layout ---------------------------------------------------------------
+    layout = QVBoxLayout(dlg)
+    layout.setSpacing(16)
+    layout.setContentsMargins(28, 28, 28, 24)
+
+    if icon_pixmap:
+        icon_label = QLabel()
+        icon_label.setPixmap(icon_pixmap)
+        icon_label.setAlignment(Qt.AlignCenter)
+        icon_label.setFixedHeight(52)
+        layout.addWidget(icon_label)
+
+    title_label = QLabel(title)
+    title_label.setAlignment(Qt.AlignCenter)
+    title_label.setWordWrap(True)
+    title_label.setStyleSheet(f"""
+        QLabel {{ color: {C.text()}; font-family: "SF Pro Text"; font-size: 15px; font-weight: 600; background: transparent; }}
+    """)
+    layout.addWidget(title_label)
+
+    msg_label = QLabel(message)
+    msg_label.setAlignment(Qt.AlignCenter)
+    msg_label.setWordWrap(True)
+    msg_label.setStyleSheet(f"""
+        QLabel {{ color: {C.text_secondary()}; font-family: "SF Pro Text"; font-size: 13px; background: transparent; }}
+    """)
+    layout.addWidget(msg_label)
+
+    layout.addSpacing(4)
+
+    # --- Buttons --------------------------------------------------------------
+    btn_layout = QHBoxLayout()
+    btn_layout.setSpacing(12)
+
+    cancel_btn = QPushButton(cancel_text)
+    style_secondary_btn(cancel_btn)
+    cancel_btn.setMinimumHeight(34)
+    cancel_btn.setCursor(Qt.PointingHandCursor)
+    cancel_btn.clicked.connect(dlg.reject)
+    btn_layout.addWidget(cancel_btn)
+
+    confirm_btn = QPushButton(confirm_text)
+    confirm_btn.setMinimumHeight(34)
+    confirm_btn.setCursor(Qt.PointingHandCursor)
+    if destructive:
+        style_destructive_btn(confirm_btn)
+    else:
+        style_primary_btn(confirm_btn)
+    confirm_btn.clicked.connect(dlg.accept)
+    confirm_btn.setDefault(True)
+    btn_layout.addWidget(confirm_btn)
+
+    layout.addLayout(btn_layout)
+
+    # --- Dialog styling -------------------------------------------------------
+    dlg.setStyleSheet(f"""
+        QDialog {{
+            background-color: {C.bg()};
+            border-radius: {R.card};
+        }}
+    """)
+
+    return dlg.exec() == QDialog.DialogCode.Accepted
+

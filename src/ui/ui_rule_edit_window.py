@@ -27,7 +27,7 @@ class Ui_RuleEditWindow(object):
         if not RuleEditWindow.objectName():
             RuleEditWindow.setObjectName(u"RuleEditWindow")
         RuleEditWindow.setWindowModality(Qt.WindowModality.ApplicationModal)
-        RuleEditWindow.resize(700, 596)
+        RuleEditWindow.resize(700, 710)
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)

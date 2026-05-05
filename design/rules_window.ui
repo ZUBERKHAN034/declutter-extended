@@ -182,6 +182,7 @@
    <addaction name="actionAdd"/>
    <addaction name="separator"/>
    <addaction name="actionAddAI"/>
+   <addaction name="actionDuplicate"/>
    <addaction name="actionDelete"/>
    <addaction name="actionExecute"/>
    <addaction name="separator"/>
@@ -303,6 +304,21 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+N</string>
+   </property>
+  </action>
+  <action name="actionDuplicate">
+   <property name="icon">
+    <iconset resource="Zeno.qrc">
+     <normaloff>:/images/icons/duplicate.svg</normaloff>:/images/icons/duplicate.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Duplicate</string>
+   </property>
+   <property name="toolTip">
+    <string>Duplicate selected rule</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
    </property>
   </action>
   <action name="actionSettings">

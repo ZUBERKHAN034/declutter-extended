@@ -6,6 +6,7 @@ from PySide6.QtGui import QPalette, QColor
 from PySide6.QtWidgets import (
     QApplication,
     QDialog,
+    QDialogButtonBox,
     QFileDialog,
     QMessageBox,
     QListWidgetItem,
@@ -26,6 +27,7 @@ from zeno.ui.style_helpers import (
     style_section_label,
     style_separator,
     reapply_styles,
+    populate_styled_list,
 )
 
 from zeno.rules import get_files_affected_by_rule
@@ -195,8 +197,7 @@ class RuleEditWindow(QDialog):
                 # Fallback textualization
                 conds.append(str(c))
 
-        self.ui.conditionListWidget.clear()
-        self.ui.conditionListWidget.addItems(conds)
+        populate_styled_list(self.ui.conditionListWidget, conds, fill_empty_rows=False)
 
     def select_folder(self):
         """Opens a folder selection dialog and sets the selected path to the appropriate text field."""
@@ -272,14 +273,20 @@ class RuleEditWindow(QDialog):
         msgBox = QDialog(self)
         msgBox.ui = Ui_listDialog()
         msgBox.ui.setupUi(msgBox)
+        msgBox.setWindowTitle("Rule test results")
+        style_dialog(msgBox)
+        style_list_widget(msgBox.ui.listWidget)
+        style_section_label(msgBox.ui.label)
+        close_btn = msgBox.ui.buttonBox.button(QDialogButtonBox.Close)
+        if close_btn:
+            style_secondary_btn(close_btn)
 
         affected = get_files_affected_by_rule(self.rule)
         if affected:
             msgBox.ui.label.setText(str(len(affected)) + " file(s) affected by this rule:")
-            msgBox.ui.listWidget.addItems(affected)
         else:
-            msgBox.ui.listWidget.setVisible(False)
             msgBox.ui.label.setText("No files affected by this rule.")
+        populate_styled_list(msgBox.ui.listWidget, affected)
 
         msgBox.exec()
 
@@ -299,8 +306,7 @@ class RuleEditWindow(QDialog):
 
         # Populate UI from rule
         self.ui.ruleNameEdit.setText(self.rule.get('name', ''))
-        self.ui.sourceListWidget.clear()
-        self.ui.sourceListWidget.addItems(self.rule.get('folders', []))
+        populate_styled_list(self.ui.sourceListWidget, self.rule.get('folders', []), fill_empty_rows=False)
         self.ui.enabledCheckBox.setChecked(bool(self.rule.get('enabled', False)))
         self.ui.recursiveCheckBox.setChecked(bool(self.rule.get('recursive', False)))
         self.ui.conditionSwitchComboBox.setCurrentText(self.rule.get('condition_switch', 'all'))
@@ -355,17 +361,18 @@ class RuleEditWindow(QDialog):
             normalized = normpath(directory)
             if normalized not in folders:
                 folders.append(normalized)
-                self.ui.sourceListWidget.addItem(normalized)
+                populate_styled_list(self.ui.sourceListWidget, folders, fill_empty_rows=False)
 
     def delete_source(self):
         indexes = self.ui.sourceListWidget.selectedIndexes()
         if not indexes:
             return
         row = indexes[0].row()
-        if row < 0 or row >= len(self.rule.get('folders', [])):
+        folders = self.rule.get('folders', [])
+        if row < 0 or row >= len(folders):
             return
-        del self.rule['folders'][row]
-        self.ui.sourceListWidget.takeItem(row)
+        del folders[row]
+        populate_styled_list(self.ui.sourceListWidget, folders, fill_empty_rows=False)
 
 
 if __name__ == "__main__":

@@ -35,12 +35,13 @@ def _ensure_single_instance():
     except OSError:
         # Another instance is already running — exit silently
         sys.exit(0)
-from PySide6.QtGui import QFontDatabase, QAction, QIcon, QFont, QPixmap, QPalette, QColor, QKeySequence
+from PySide6.QtGui import QFontDatabase, QAction, QIcon, QFont, QPixmap, QPalette, QColor, QKeySequence, QCursor
 from PySide6.QtWidgets import (
     QApplication,
     QSystemTrayIcon,
     QMenu,
     QDialog,
+    QDialogButtonBox,
     QTableWidgetItem,
     QAbstractScrollArea,
     QTableWidgetSelectionRange,
@@ -66,6 +67,10 @@ from zeno.ui.style_helpers import (
     style_primary_btn,
     style_toolbar,
     reapply_styles,
+    styled_confirm_dialog,
+    style_list_widget,
+    style_section_label,
+    populate_styled_list,
 )
 from zeno.ui.design_tokens import C
 
@@ -97,6 +102,7 @@ class RulesWindow(QMainWindow):
 
         self.ui.toolBar.addAction(self.ui.actionAdd)
         self.ui.toolBar.addAction(self.ui.actionAddAI)
+        self.ui.toolBar.addAction(self.ui.actionDuplicate)
         self.ui.toolBar.addAction(self.ui.actionDelete)
         self.ui.toolBar.addAction(self.ui.actionExecute)
         self.ui.toolBar.addAction(self.ui.actionMove_up)
@@ -110,6 +116,7 @@ class RulesWindow(QMainWindow):
 
         self.ui.actionAdd.setText("Add Rule")
         self.ui.actionAddAI.setText("Magic Action")
+        self.ui.actionDuplicate.setText("Duplicate Rule")
         self.ui.actionDelete.setText("Delete Rule")
         self.ui.actionExecute.setText("Run Rule")
         self.ui.actionExecute.setFont(self.ui.actionAdd.font()) # Reset font to match others
@@ -142,6 +149,7 @@ class RulesWindow(QMainWindow):
         _icon_map = {
             self.ui.actionAdd: ":/images/icons/plus.svg",
             self.ui.actionAddAI: ":/images/icons/sparkle.svg",
+            self.ui.actionDuplicate: ":/images/icons/duplicate.svg",
             self.ui.actionDelete: ":/images/icons/trash.svg",
             self.ui.actionExecute: ":/images/icons/media-play.svg",
             self.ui.actionMove_up: ":/images/icons/arrow-thin-up.svg",
@@ -187,6 +195,7 @@ class RulesWindow(QMainWindow):
         self.ui.moveDown.setVisible(False)
 
         self.ui.actionAdd.triggered.connect(self.add_rule)
+        self.ui.actionDuplicate.triggered.connect(self.duplicate_rule)
         if sys.platform == "darwin":
             self.ui.actionAddAI.triggered.connect(self.add_ai_rule)
             self._ai_dialog = AIRuleDialog(parent=self)
@@ -255,8 +264,9 @@ class RulesWindow(QMainWindow):
 
     def tray_activated(self, reason):
         """Handles activation of the system tray icon."""
-        if reason == QSystemTrayIcon.DoubleClick:
-            self.setVisible(True)
+        if reason == QSystemTrayIcon.Trigger or reason == QSystemTrayIcon.DoubleClick:
+            self.trayIconMenu.close()
+            self.showNormal()
 
     def move_rule_up(self):
         """Moves the selected rule up in the list."""
@@ -348,13 +358,15 @@ class RulesWindow(QMainWindow):
         open_file(LOG_FILE)
 
     def clear_log_file(self):
-        reply = QMessageBox.question(
+        confirmed = styled_confirm_dialog(
             self,
-            "Warning",
-            "Are you sure you want to clear the log?",
-            QMessageBox.Yes | QMessageBox.No,
+            title="Clear Log",
+            message="Are you sure you want to clear the log?",
+            confirm_text="Clear",
+            cancel_text="Cancel",
+            destructive=True,
         )
-        if reply == QMessageBox.Yes:
+        if confirmed:
             try:
                 _refresh_log_file_handler()  # detach/close existing handler
                 with open(LOG_FILE, "w", encoding="utf-8"):
@@ -370,15 +382,20 @@ class RulesWindow(QMainWindow):
         msgBox.ui = Ui_listDialog()
         msgBox.ui.setupUi(msgBox)
         msgBox.setWindowTitle("Rule executed")
+        style_dialog(msgBox)
+        style_list_widget(msgBox.ui.listWidget)
+        style_section_label(msgBox.ui.label)
+        close_btn = msgBox.ui.buttonBox.button(QDialogButtonBox.Close)
+        if close_btn:
+            style_secondary_btn(close_btn)
         affected = self.service_run_details
         if affected:
             msgBox.ui.label.setText(
                 str(len(affected)) + " file(s) affected by this rule:"
             )
-            msgBox.ui.listWidget.addItems(affected)
         else:
-            msgBox.ui.listWidget.setVisible(False)
             msgBox.ui.label.setText("No files affected by this rule.")
+        populate_styled_list(msgBox.ui.listWidget, affected)
         msgBox.exec()
         self.service_run_details = []
 
@@ -403,6 +420,27 @@ class RulesWindow(QMainWindow):
                 else 1
             )
             self.settings["rules"].append(rule)
+        save_settings(self.settings)
+        self.load_rules()
+
+    def duplicate_rule(self):
+        """Duplicates the selected rule(s)."""
+        selected = self.ui.rulesTable.selectedIndexes()
+        if not selected:
+            QMessageBox.warning(self, "No rule selected", "Please select a rule to duplicate.")
+            return
+
+        row_indices = list(set([r.row() for r in selected]))
+        for r in row_indices:
+            rule_to_copy = deepcopy(self.settings["rules"][r])
+            rule_to_copy["name"] = rule_to_copy["name"] + " (Copy)"
+            rule_to_copy["enabled"] = False
+            rule_to_copy["id"] = (
+                max([int(rule["id"]) for rule in self.settings["rules"] if "id" in rule.keys()]) + 1
+                if self.settings["rules"] else 1
+            )
+            self.settings["rules"].append(rule_to_copy)
+            
         save_settings(self.settings)
         self.load_rules()
 
@@ -462,15 +500,16 @@ class RulesWindow(QMainWindow):
                 if self.settings["rules"].index(r) in del_indexes
             ]
 
-            reply = QMessageBox.question(
+            confirmed = styled_confirm_dialog(
                 self,
-                "Warning",
-                "Are you sure you want to delete selected rules:\n"
-                + "\n".join(del_names)
-                + "\n?",
-                QMessageBox.Yes | QMessageBox.No,
+                title="Delete Rules",
+                message="Are you sure you want to delete the selected rules?\n\n"
+                + "\n".join(del_names),
+                confirm_text="Delete",
+                cancel_text="Cancel",
+                destructive=True,
             )
-            if reply == QMessageBox.Yes:
+            if confirmed:
                 # Delete in reverse order so we don't invalidate earlier indexes
                 for ind in sorted(del_indexes, reverse=True):
                     del self.settings["rules"][ind]
@@ -496,15 +535,20 @@ class RulesWindow(QMainWindow):
         msgBox.ui = Ui_listDialog()
         msgBox.ui.setupUi(msgBox)
         msgBox.setWindowTitle("Rule executed")
+        style_dialog(msgBox)
+        style_list_widget(msgBox.ui.listWidget)
+        style_section_label(msgBox.ui.label)
+        close_btn = msgBox.ui.buttonBox.button(QDialogButtonBox.Close)
+        if close_btn:
+            style_secondary_btn(close_btn)
 
         if affected:
             msgBox.ui.label.setText(
                 str(len(affected)) + " file(s) affected by this rule:"
             )
-            msgBox.ui.listWidget.addItems(affected)
         else:
-            msgBox.ui.listWidget.setVisible(False)
             msgBox.ui.label.setText("No files affected by this rule.")
+        populate_styled_list(msgBox.ui.listWidget, affected)
         msgBox.exec()
 
     def load_rules(self):
@@ -519,8 +563,11 @@ class RulesWindow(QMainWindow):
             self.ui.rulesTable.setItem(i, 0, QTableWidgetItem(rule["name"]))
             status_item = QTableWidgetItem("Enabled" if rule["enabled"] else "Disabled")
             status_item.setForeground(QColor(C.success() if rule["enabled"] else C.error()))
+            status_item.setTextAlignment(Qt.AlignCenter)
             self.ui.rulesTable.setItem(i, 1, status_item)
-            self.ui.rulesTable.setItem(i, 2, QTableWidgetItem(rule["action"]))
+            action_item = QTableWidgetItem(rule["action"])
+            action_item.setTextAlignment(Qt.AlignCenter)
+            self.ui.rulesTable.setItem(i, 2, action_item)
             self.ui.rulesTable.setItem(
                 i, 3, QTableWidgetItem(",".join(rule["folders"]))
             )
