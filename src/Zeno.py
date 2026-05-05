@@ -35,7 +35,7 @@ def _ensure_single_instance():
     except OSError:
         # Another instance is already running — exit silently
         sys.exit(0)
-from PySide6.QtGui import QFontDatabase, QAction, QIcon, QFont, QPixmap, QPalette, QColor, QKeySequence, QCursor
+from PySide6.QtGui import QFontDatabase, QAction, QIcon, QFont, QPixmap, QPalette, QColor, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
     QSystemTrayIcon,
@@ -395,7 +395,7 @@ class RulesWindow(QMainWindow):
             )
         else:
             msgBox.ui.label.setText("No files affected by this rule.")
-        populate_styled_list(msgBox.ui.listWidget, affected)
+        populate_styled_list(msgBox.ui.listWidget, affected, placeholder_text="No files affected by this rule.")
         msgBox.exec()
         self.service_run_details = []
 
@@ -430,17 +430,21 @@ class RulesWindow(QMainWindow):
             QMessageBox.warning(self, "No rule selected", "Please select a rule to duplicate.")
             return
 
-        row_indices = list(set([r.row() for r in selected]))
+        row_indices = sorted(set([r.row() for r in selected]))
+        next_id = (
+            max([int(rule["id"]) for rule in self.settings["rules"] if "id" in rule.keys()]) + 1
+            if self.settings["rules"] else 1
+        )
         for r in row_indices:
+            if r < 0 or r >= len(self.settings["rules"]):
+                continue
             rule_to_copy = deepcopy(self.settings["rules"][r])
             rule_to_copy["name"] = rule_to_copy["name"] + " (Copy)"
             rule_to_copy["enabled"] = False
-            rule_to_copy["id"] = (
-                max([int(rule["id"]) for rule in self.settings["rules"] if "id" in rule.keys()]) + 1
-                if self.settings["rules"] else 1
-            )
+            rule_to_copy["id"] = next_id
+            next_id += 1
             self.settings["rules"].append(rule_to_copy)
-            
+
         save_settings(self.settings)
         self.load_rules()
 
@@ -548,7 +552,7 @@ class RulesWindow(QMainWindow):
             )
         else:
             msgBox.ui.label.setText("No files affected by this rule.")
-        populate_styled_list(msgBox.ui.listWidget, affected)
+        populate_styled_list(msgBox.ui.listWidget, affected, placeholder_text="No files affected by this rule.")
         msgBox.exec()
 
     def load_rules(self):

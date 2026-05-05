@@ -100,14 +100,14 @@ def _visible_row_capacity(list_widget: QListWidget) -> int:
     return max(6, h // rh)
 
 
-def populate_styled_list(list_widget: QListWidget, items, fill_empty_rows: bool = True):
+def populate_styled_list(list_widget: QListWidget, items, fill_empty_rows: bool = True, placeholder_text: str = "No items."):
     """Populate a QListWidget, relying on style_list_widget's alternating palette."""
     list_widget.clear()
     all_items = list(items) if items else []
 
     if not all_items:
         if fill_empty_rows:
-            placeholder = QListWidgetItem("No files affected by this rule.")
+            placeholder = QListWidgetItem(placeholder_text)
             placeholder.setFlags(Qt.NoItemFlags)
             placeholder.setForeground(QColor(C.text_secondary()))
             list_widget.addItem(placeholder)
@@ -123,7 +123,8 @@ def populate_styled_list(list_widget: QListWidget, items, fill_empty_rows: bool 
 
     # Pad with empty rows to fill the visible area (no scrolling until real items overflow)
     cap = _visible_row_capacity(list_widget)
-    pad = 50 if fill_empty_rows else max(0, cap - start)
+    DEFAULT_PAD = 50  # generous padding to prevent early scrollbar appearance
+    pad = DEFAULT_PAD if fill_empty_rows else max(0, cap - start)
     for _ in range(start, start + pad):
         empty = QListWidgetItem("")
         empty.setFlags(Qt.NoItemFlags)
