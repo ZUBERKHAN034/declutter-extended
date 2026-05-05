@@ -10,7 +10,7 @@ Run with:
 from unittest.mock import patch
 import pytest
 
-from declutter.file_utils import _escape_glob, get_file_type
+from zeno.file_utils import _escape_glob, get_file_type
 
 
 # ---------------------------------------------------------------------------
@@ -63,33 +63,33 @@ MOCK_SETTINGS = {
 class TestGetFileTypeSpecialChars:
     """get_file_type must not be confused by glob chars in filenames."""
 
-    @patch("declutter.file_utils.load_settings", return_value=MOCK_SETTINGS)
+    @patch("zeno.file_utils.load_settings", return_value=MOCK_SETTINGS)
     def test_normal_filename(self, _mock):
         assert get_file_type("/Users/test/readme.txt") == "Document"
 
-    @patch("declutter.file_utils.load_settings", return_value=MOCK_SETTINGS)
+    @patch("zeno.file_utils.load_settings", return_value=MOCK_SETTINGS)
     def test_brackets_in_filename(self, _mock):
         assert get_file_type("/Downloads/report [2024].pdf") == "Document"
 
-    @patch("declutter.file_utils.load_settings", return_value=MOCK_SETTINGS)
+    @patch("zeno.file_utils.load_settings", return_value=MOCK_SETTINGS)
     def test_parentheses_in_filename(self, _mock):
         assert get_file_type("/Downloads/file (copy).txt") == "Document"
 
-    @patch("declutter.file_utils.load_settings", return_value=MOCK_SETTINGS)
+    @patch("zeno.file_utils.load_settings", return_value=MOCK_SETTINGS)
     def test_hyphen_in_filename(self, _mock):
         assert get_file_type("/Downloads/my-video-file.mp4") == "Video"
 
-    @patch("declutter.file_utils.load_settings", return_value=MOCK_SETTINGS)
+    @patch("zeno.file_utils.load_settings", return_value=MOCK_SETTINGS)
     def test_all_special_chars_combined(self, _mock):
         assert get_file_type(
             "/Downloads/example-file (2024) [test].txt"
         ) == "Document"
 
-    @patch("declutter.file_utils.load_settings", return_value=MOCK_SETTINGS)
+    @patch("zeno.file_utils.load_settings", return_value=MOCK_SETTINGS)
     def test_unknown_extension(self, _mock):
         assert get_file_type("/Downloads/file [test].xyz") == "Other"
 
-    @patch("declutter.file_utils.load_settings", return_value=MOCK_SETTINGS)
+    @patch("zeno.file_utils.load_settings", return_value=MOCK_SETTINGS)
     def test_unix_path_with_brackets(self, _mock):
         assert get_file_type("/home/user/photo [edit].jpg") == "Image"
 

@@ -1,6 +1,6 @@
-# DeClutter
+# Zeno
 
-DeClutter is a macOS desktop application that automatically organizes your files using customizable rules. It runs quietly in the background, processing files on a schedule so you never have to tidy up manually.
+Zeno is a macOS desktop application that automatically organizes your files using customizable rules. It runs quietly in the background, processing files on a schedule so you never have to tidy up manually.
 
 ## Features
 
@@ -10,7 +10,7 @@ DeClutter is a macOS desktop application that automatically organizes your files
     *   **Actions:** Move, Copy, Delete, Send to Trash, Rename, or Move to subfolder. Supports token-based renaming (`<filename>`, `<folder>`, `<replace:…>`), folder-structure preservation, and configurable duplicate handling (increment name or overwrite).
     *   **Ignore newest:** Optionally skip the N most recent files per folder.
 *   **Background Service** — Rules execute on a timer (default every 5 minutes). A system-tray icon provides quick access to the rules window and settings.
-*   **Launch at Startup** — Optionally start DeClutter when you log in.
+*   **Launch at Startup** — Optionally start Zeno when you log in.
 *   **Native macOS Look** — Automatically follows system dark / light mode.
 
 ## Use Cases

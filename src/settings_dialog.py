@@ -1,12 +1,12 @@
 from PySide6.QtWidgets import QDialog, QTableWidgetItem, QApplication, QMessageBox, QLineEdit, QComboBox, QRadioButton, QDialogButtonBox
 from PySide6.QtCore import Qt, QSize, QThread, Signal as _Signal
-from declutter.config import VERSION
-from declutter.store import load_settings, save_settings
+from zeno.config import VERSION
+from zeno.store import load_settings, save_settings
 from src.startup import is_enabled as startup_is_enabled, enable as startup_enable, disable as startup_disable
 
 from src.ui.ui_settings_dialog import Ui_settingsDialog
 from src.ui.macos_style import apply_macos_styling
-from declutter.ui.style_helpers import (
+from zeno.ui.style_helpers import (
     style_dialog,
     style_tab_widget,
     style_table_widget,
@@ -24,7 +24,7 @@ from declutter.ui.style_helpers import (
 import sys
 
 if sys.platform == "darwin":
-    from declutter.ai.gemini_service import GeminiService, MODEL_CHOICES
+    from zeno.ai.gemini_service import GeminiService, MODEL_CHOICES
 
 
 class _GeminiTestWorker(QThread):
@@ -62,7 +62,7 @@ class SettingsDialog(QDialog):
         from PySide6.QtGui import QPixmap
         import os
         self.ui.aboutLogoLabel.setPixmap(
-            QPixmap(os.path.join(os.path.dirname(__file__), "..", "assets", "new_icon.png")).scaled(
+            QPixmap(os.path.join(os.path.dirname(__file__), "..", "assets", "zeno_logo.png")).scaled(
                 QSize(80, 80), Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation))
         apply_macos_styling(self)

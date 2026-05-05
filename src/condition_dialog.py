@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QApplication, QDialog, QMessageBox, QDialogButtonB
 
 from src.ui.ui_condition_dialog import Ui_Condition
 from src.ui.macos_style import apply_macos_styling
-from declutter.ui.style_helpers import (
+from zeno.ui.style_helpers import (
     style_dialog,
     style_line_edit,
     style_combo_box,
@@ -13,7 +13,7 @@ from declutter.ui.style_helpers import (
     reapply_styles,
 )
 
-from declutter.store import load_settings
+from zeno.store import load_settings
 
 
 class ConditionDialog(QDialog):

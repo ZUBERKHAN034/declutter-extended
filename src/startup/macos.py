@@ -6,11 +6,11 @@ import plistlib
 import subprocess
 from pathlib import Path
 
-AGENT_LABEL = "com.declutter.autostart"
+AGENT_LABEL = "com.zeno.autostart"
 AGENT_PLIST = Path.home() / "Library" / "LaunchAgents" / f"{AGENT_LABEL}.plist"
 
 def _app_executable_path() -> str:
-    # In a bundled app, sys.executable points to DeClutter.app/Contents/MacOS/DeClutter
+    # In a bundled app, sys.executable points to Zeno.app/Contents/MacOS/Zeno
     if getattr(sys, "frozen", False):
         return sys.executable
     return os.path.abspath(sys.argv[0])

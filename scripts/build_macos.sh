@@ -13,8 +13,8 @@ pip install pyinstaller
 
 # Build the application
 # Use the macOS-native .icns asset (with proper Dock padding) instead of .ico
-pyinstaller --name DeClutter --windowed --onefile --icon=assets/DeClutter.icns src/DeClutter.py
+pyinstaller --name Zeno --windowed --onefile --icon=assets/Zeno.icns src/Zeno.py
 
 # Create a DMG
 mkdir -p build/macos
-hdiutil create build/macos/DeClutter.dmg -volname "DeClutter" -srcfolder "dist/DeClutter.app"
+hdiutil create build/macos/Zeno.dmg -volname "Zeno" -srcfolder "dist/Zeno.app"

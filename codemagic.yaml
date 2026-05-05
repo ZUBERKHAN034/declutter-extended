@@ -41,23 +41,23 @@ workflows:
           set -ex
           source venv/bin/activate
           ICON_ARG=""
-          if [ -f assets/DeClutter.icns ]; then
-            ICON_ARG="--icon assets/DeClutter.icns"
+          if [ -f assets/Zeno.icns ]; then
+            ICON_ARG="--icon assets/Zeno.icns"
           else
             ICON_ARG="--icon NONE"
           fi
           # Build a macOS .app bundle in onedir (recommended for macOS)
-          pyinstaller --name DeClutter --windowed --onedir $ICON_ARG src/DeClutter.py
+          pyinstaller --name Zeno --windowed --onedir $ICON_ARG src/Zeno.py
 
       - name: Package artifact (zip the .app)
         script: |
           set -ex
           mkdir -p artifacts
-          APP_PATH="dist/DeClutter.app"
+          APP_PATH="dist/Zeno.app"
           if [ ! -d "$APP_PATH" ]; then
             echo "App not found at $APP_PATH"; exit 1
           fi
-          (cd dist && zip -ry ../artifacts/DeClutter-unsigned.zip DeClutter.app)
+          (cd dist && zip -ry ../artifacts/Zeno-unsigned.zip Zeno.app)
 
     artifacts:
       - artifacts/*.zip

@@ -1,6 +1,6 @@
 from cx_Freeze import setup, Executable
 import os
-from declutter.config import VERSION as APP_VERSION
+from zeno.config import VERSION as APP_VERSION
 
 build_exe_options = {
     "excludes": [
@@ -20,22 +20,22 @@ build_exe_options = {
         "PySide6.QtWebEngineCore", "PySide6.QtWebEngineWidgets",
         "PySide6.QtWebSockets", "PySide6.QtXmlPatterns"
     ],
-    "packages": ["os", "sys", "collections", "PySide6", "declutter", "requests", "certifi", "charset_normalizer"],
+    "packages": ["os", "sys", "collections", "PySide6", "zeno", "requests", "certifi", "charset_normalizer"],
     "include_files": [
-        os.path.join("assets", "new_icon.icns"),
+        os.path.join("assets", "zeno_logo.icns"),
     ],
     "optimize": 2
 }
 
 setup(
-    name="DeClutter",
+    name="Zeno",
     version=APP_VERSION,
-    description="DeClutter: file organizer",
+    description="Zeno: file organizer",
     options={"build_exe": build_exe_options},
     executables=[
         Executable(
-            os.path.join("src", "DeClutter.py"),
-            icon=os.path.join("assets", "new_icon.icns")
+            os.path.join("src", "Zeno.py"),
+            icon=os.path.join("assets", "zeno_logo.icns")
         )
     ]
 )

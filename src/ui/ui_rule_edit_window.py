@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QComboB
     QGridLayout, QHBoxLayout, QLabel, QLineEdit,
     QListWidget, QListWidgetItem, QPushButton, QSizePolicy,
     QSpacerItem, QWidget)
+from zeno.ui.widgets import MacComboBox
 
 class Ui_RuleEditWindow(object):
     def setupUi(self, RuleEditWindow):
@@ -65,7 +66,7 @@ class Ui_RuleEditWindow(object):
 
         self.formLayout_6 = QFormLayout()
         self.formLayout_6.setObjectName(u"formLayout_6")
-        self.conditionSwitchComboBox = QComboBox(RuleEditWindow)
+        self.conditionSwitchComboBox = MacComboBox(RuleEditWindow)
         self.conditionSwitchComboBox.addItem("")
         self.conditionSwitchComboBox.addItem("")
         self.conditionSwitchComboBox.addItem("")
@@ -86,7 +87,7 @@ class Ui_RuleEditWindow(object):
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.actionComboBox = QComboBox(RuleEditWindow)
+        self.actionComboBox = MacComboBox(RuleEditWindow)
         self.actionComboBox.addItem("")
         self.actionComboBox.addItem("")
         self.actionComboBox.addItem("")
@@ -99,9 +100,7 @@ class Ui_RuleEditWindow(object):
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.actionComboBox.sizePolicy().hasHeightForWidth())
         self.actionComboBox.setSizePolicy(sizePolicy1)
-        self.actionComboBox.setMinimumSize(QSize(0, 0))
-        self.actionComboBox.setMaximumSize(QSize(120, 20))
-        self.actionComboBox.setBaseSize(QSize(110, 0))
+
         self.actionComboBox.setEditable(False)
         self.actionComboBox.setDuplicatesEnabled(False)
 
@@ -246,7 +245,7 @@ class Ui_RuleEditWindow(object):
 
         self.horizontalLayout_7.addWidget(self.fileWithSameNameLabel)
 
-        self.overwriteComboBox = QComboBox(RuleEditWindow)
+        self.overwriteComboBox = MacComboBox(RuleEditWindow)
         self.overwriteComboBox.addItem("")
         self.overwriteComboBox.addItem("")
         self.overwriteComboBox.setObjectName(u"overwriteComboBox")

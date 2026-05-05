@@ -23,8 +23,8 @@
    <string>Condition</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="DeClutter.qrc">
-    <normaloff>:/images/icons/DeClutter_mac.png</normaloff>:/images/icons/DeClutter_mac.png</iconset>
+   <iconset resource="Zeno.qrc">
+    <normaloff>:/images/icons/Zeno_mac.png</normaloff>:/images/icons/Zeno_mac.png</iconset>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
@@ -367,7 +367,7 @@
  </widget>
  <customwidgets/>
  <resources>
-  <include location="DeClutter.qrc"/>
+  <include location="Zeno.qrc"/>
  </resources>
  <connections>
   <connection>

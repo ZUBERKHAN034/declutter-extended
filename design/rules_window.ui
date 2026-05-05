@@ -17,11 +17,11 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>DeClutter: Rules</string>
+   <string>Zeno: Rules</string>
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>:/images/icons/DeClutter_mac.png</normaloff>:/images/icons/DeClutter_mac.png</iconset>
+    <normaloff>:/images/icons/Zeno_mac.png</normaloff>:/images/icons/Zeno_mac.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -195,7 +195,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="DeClutter.qrc">
+    <iconset resource="Zeno.qrc">
      <normaloff>:/images/icons/plus.svg</normaloff>:/images/icons/plus.svg</iconset>
    </property>
    <property name="text">
@@ -223,7 +223,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset theme="QIcon::ThemeIcon::EditDelete" resource="DeClutter.qrc">
+    <iconset theme="QIcon::ThemeIcon::EditDelete" resource="Zeno.qrc">
      <normaloff>:/images/icons/trash.svg</normaloff>:/images/icons/trash.svg</iconset>
    </property>
    <property name="text">
@@ -238,7 +238,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset theme="QIcon::ThemeIcon::MediaPlaybackStart" resource="DeClutter.qrc">
+    <iconset theme="QIcon::ThemeIcon::MediaPlaybackStart" resource="Zeno.qrc">
      <normaloff>:/images/icons/media-play.svg</normaloff>:/images/icons/media-play.svg</iconset>
    </property>
    <property name="text">
@@ -265,7 +265,7 @@
   </action>
   <action name="actionMove_up">
    <property name="icon">
-    <iconset theme="QIcon::ThemeIcon::GoUp" resource="DeClutter.qrc">
+    <iconset theme="QIcon::ThemeIcon::GoUp" resource="Zeno.qrc">
      <normaloff>:/images/icons/arrow-thin-up.svg</normaloff>:/images/icons/arrow-thin-up.svg</iconset>
    </property>
    <property name="text">
@@ -277,7 +277,7 @@
   </action>
   <action name="actionMove_down">
    <property name="icon">
-    <iconset theme="QIcon::ThemeIcon::GoDown" resource="DeClutter.qrc">
+    <iconset theme="QIcon::ThemeIcon::GoDown" resource="Zeno.qrc">
      <normaloff>:/images/icons/arrow-thin-down.svg</normaloff>:/images/icons/arrow-thin-down.svg</iconset>
    </property>
    <property name="text">
@@ -292,7 +292,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="DeClutter.qrc">
+    <iconset resource="Zeno.qrc">
      <normaloff>:/images/icons/sparkle.svg</normaloff>:/images/icons/sparkle.svg</iconset>
    </property>
    <property name="text">
@@ -307,7 +307,7 @@
   </action>
   <action name="actionSettings">
    <property name="icon">
-    <iconset resource="DeClutter.qrc">
+    <iconset resource="Zeno.qrc">
      <normaloff>:/images/icons/gear.svg</normaloff>:/images/icons/gear.svg</iconset>
    </property>
    <property name="text">
@@ -321,7 +321,7 @@
   </action>
  </widget>
  <resources>
-  <include location="DeClutter.qrc"/>
+  <include location="Zeno.qrc"/>
  </resources>
  <connections/>
 </ui>

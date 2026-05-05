@@ -4,7 +4,7 @@ Minimal tests for the scheduler-flag lifecycle (GitHub issue #9).
 These tests verify that:
 1. show_tray_message is a real method of RulesWindow (not nested inside closeEvent)
 2. The service_runs flag resets correctly after the service thread finishes
-3. declutter_service.run() emits the signal even when apply_all_rules raises
+3. zeno_service.run() emits the signal even when apply_all_rules raises
 
 Run with:
     python -m pytest tests/test_scheduler_flag.py -v
@@ -22,15 +22,15 @@ import pytest
 # Helpers to import the module under test without needing a running QApplication
 # ---------------------------------------------------------------------------
 
-def _get_declutter_service_class():
-    """Import and return the declutter_service class from src.DeClutter."""
-    mod = importlib.import_module("src.DeClutter")
-    return mod.declutter_service
+def _get_zeno_service_class():
+    """Import and return the zeno_service class from src.Zeno."""
+    mod = importlib.import_module("src.Zeno")
+    return mod.zeno_service
 
 
 def _get_rules_window_class():
-    """Import and return the RulesWindow class from src.DeClutter."""
-    mod = importlib.import_module("src.DeClutter")
+    """Import and return the RulesWindow class from src.Zeno."""
+    mod = importlib.import_module("src.Zeno")
     return mod.RulesWindow
 
 
@@ -81,37 +81,37 @@ class TestServiceRunsFlag:
         assert fake.service_runs is False
 
 
-class TestDeclutterServiceExceptionSafety:
-    """declutter_service.run() must emit the signal even when apply_all_rules raises."""
+class TestZenoServiceExceptionSafety:
+    """zeno_service.run() must emit the signal even when apply_all_rules raises."""
 
-    @patch("src.DeClutter.load_settings", return_value={
+    @patch("src.Zeno.load_settings", return_value={
         "rules": [], "dryrun": False, "file_types": {}, "recent_folders": [],
     })
-    @patch("src.DeClutter.apply_all_rules", side_effect=RuntimeError("boom"))
+    @patch("src.Zeno.apply_all_rules", side_effect=RuntimeError("boom"))
     def test_signal_emitted_on_exception(self, mock_apply, mock_load):
-        DeclutterService = _get_declutter_service_class()
+        ZenoService = _get_zeno_service_class()
 
-        # Create a mock that has the same interface as declutter_service
-        svc = MagicMock(spec=DeclutterService)
+        # Create a mock that has the same interface as zeno_service
+        svc = MagicMock(spec=ZenoService)
         svc.signals = MagicMock()
 
         # Call the real run method on the mock instance
-        DeclutterService.run(svc)
+        ZenoService.run(svc)
 
         # Signal must have been emitted even though apply_all_rules raised
         svc.signals.signal1.emit.assert_called_once_with("", [])
 
-    @patch("src.DeClutter.load_settings", return_value={
+    @patch("src.Zeno.load_settings", return_value={
         "rules": [], "dryrun": False, "file_types": {}, "recent_folders": [],
     })
-    @patch("src.DeClutter.apply_all_rules", return_value=({}, []))
+    @patch("src.Zeno.apply_all_rules", return_value=({}, []))
     def test_signal_emitted_on_success(self, mock_apply, mock_load):
-        DeclutterService = _get_declutter_service_class()
+        ZenoService = _get_zeno_service_class()
 
-        svc = MagicMock(spec=DeclutterService)
+        svc = MagicMock(spec=ZenoService)
         svc.signals = MagicMock()
 
-        DeclutterService.run(svc)
+        ZenoService.run(svc)
 
         # Signal must have been emitted on success too
         svc.signals.signal1.emit.assert_called_once()

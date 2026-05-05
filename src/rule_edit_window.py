@@ -15,7 +15,7 @@ from src.ui.ui_list_dialog import Ui_listDialog
 from src.ui.ui_rule_edit_window import Ui_RuleEditWindow
 from src.ui.macos_style import apply_macos_styling
 from src.condition_dialog import ConditionDialog
-from declutter.ui.style_helpers import (
+from zeno.ui.style_helpers import (
     style_dialog,
     style_line_edit,
     style_combo_box,
@@ -28,7 +28,7 @@ from declutter.ui.style_helpers import (
     reapply_styles,
 )
 
-from declutter.rules import get_files_affected_by_rule
+from zeno.rules import get_files_affected_by_rule
 
 
 class RuleEditWindow(QDialog):

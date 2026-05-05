@@ -375,7 +375,7 @@
           <set>Qt::AlignmentFlag::AlignCenter</set>
          </property>
          <property name="text">
-          <string>DeClutter</string>
+          <string>Zeno</string>
          </property>
         </widget>
        </item>
@@ -398,7 +398,7 @@
           <bool>true</bool>
          </property>
          <property name="text">
-          <string>&lt;a href=&quot;https://github.com/ZUBERKHAN034/declutter-extended&quot;&gt;View on GitHub&lt;/a&gt;</string>
+          <string>&lt;a href=&quot;https://github.com/ZUBERKHAN034/zeno-extended&quot;&gt;View on GitHub&lt;/a&gt;</string>
          </property>
         </widget>
        </item>

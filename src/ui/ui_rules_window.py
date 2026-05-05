@@ -21,7 +21,8 @@ from PySide6.QtWidgets import (QAbstractItemView, QAbstractScrollArea, QApplicat
     QMenuBar, QPushButton, QSizePolicy, QSpacerItem,
     QTableWidget, QTableWidgetItem, QToolBar, QVBoxLayout,
     QWidget)
-from . import DeClutter_rc
+from zeno.ui.widgets import MacTableWidget
+from . import Zeno_rc
 
 class Ui_rulesWindow(object):
     def setupUi(self, rulesWindow):
@@ -35,7 +36,7 @@ class Ui_rulesWindow(object):
         rulesWindow.setSizePolicy(sizePolicy)
         icon = QIcon()
         import os
-        icon.addFile(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "new_icon.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon.addFile(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "zeno_logo.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         rulesWindow.setWindowIcon(icon)
         self.actionAdd = QAction(rulesWindow)
         self.actionAdd.setObjectName(u"actionAdd")
@@ -148,7 +149,7 @@ class Ui_rulesWindow(object):
 
         self.verticalLayout_2.addLayout(self.horizontalLayout)
 
-        self.rulesTable = QTableWidget(self.centralwidget)
+        self.rulesTable = MacTableWidget(self.centralwidget)
         if (self.rulesTable.columnCount() < 4):
             self.rulesTable.setColumnCount(4)
         __qtablewidgetitem = QTableWidgetItem()
@@ -212,7 +213,7 @@ class Ui_rulesWindow(object):
     # setupUi
 
     def retranslateUi(self, rulesWindow):
-        rulesWindow.setWindowTitle(QCoreApplication.translate("rulesWindow", u"DeClutter: Rules", None))
+        rulesWindow.setWindowTitle(QCoreApplication.translate("rulesWindow", u"Zeno: Rules", None))
         self.actionAdd.setText(QCoreApplication.translate("rulesWindow", u"Add", None))
 #if QT_CONFIG(tooltip)
         self.actionAdd.setToolTip(QCoreApplication.translate("rulesWindow", u"Add", None))

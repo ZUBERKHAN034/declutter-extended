@@ -19,7 +19,8 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QComboBox, QDialog
     QDialogButtonBox, QHBoxLayout, QLabel, QLayout,
     QLineEdit, QSizePolicy, QSpacerItem, QVBoxLayout,
     QWidget)
-from . import DeClutter_rc
+from zeno.ui.widgets import MacComboBox
+from . import Zeno_rc
 
 class Ui_Condition(object):
     def setupUi(self, Condition):
@@ -34,7 +35,7 @@ class Ui_Condition(object):
         Condition.setSizePolicy(sizePolicy)
         icon = QIcon()
         import os
-        icon.addFile(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "new_icon.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon.addFile(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "zeno_logo.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         Condition.setWindowIcon(icon)
         self.horizontalLayout = QHBoxLayout(Condition)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
@@ -53,7 +54,7 @@ class Ui_Condition(object):
 
         self.horizontalLayout_4.addWidget(self.label)
 
-        self.conditionCombo = QComboBox(Condition)
+        self.conditionCombo = MacComboBox(Condition)
         self.conditionCombo.addItem("")
         self.conditionCombo.addItem("")
         self.conditionCombo.addItem("")
@@ -81,7 +82,7 @@ class Ui_Condition(object):
 
         self.horizontalLayout_3.addWidget(self.nameLabel)
 
-        self.nameCombo = QComboBox(Condition)
+        self.nameCombo = MacComboBox(Condition)
         self.nameCombo.addItem("")
         self.nameCombo.addItem("")
         self.nameCombo.setObjectName(u"nameCombo")
@@ -113,7 +114,7 @@ class Ui_Condition(object):
 
         self.ageLayout.addWidget(self.ageLabel)
 
-        self.ageCombo = QComboBox(Condition)
+        self.ageCombo = MacComboBox(Condition)
         self.ageCombo.addItem("")
         self.ageCombo.addItem("")
         self.ageCombo.setObjectName(u"ageCombo")
@@ -125,7 +126,7 @@ class Ui_Condition(object):
 
         self.ageLayout.addWidget(self.age)
 
-        self.ageUnitsCombo = QComboBox(Condition)
+        self.ageUnitsCombo = MacComboBox(Condition)
         self.ageUnitsCombo.addItem("")
         self.ageUnitsCombo.addItem("")
         self.ageUnitsCombo.addItem("")
@@ -148,7 +149,7 @@ class Ui_Condition(object):
 
         self.sizeLayout.addWidget(self.sizeLabel)
 
-        self.sizeCombo = QComboBox(Condition)
+        self.sizeCombo = MacComboBox(Condition)
         self.sizeCombo.addItem("")
         self.sizeCombo.addItem("")
         self.sizeCombo.setObjectName(u"sizeCombo")
@@ -160,7 +161,7 @@ class Ui_Condition(object):
 
         self.sizeLayout.addWidget(self.size)
 
-        self.sizeUnitsCombo = QComboBox(Condition)
+        self.sizeUnitsCombo = MacComboBox(Condition)
         self.sizeUnitsCombo.addItem("")
         self.sizeUnitsCombo.addItem("")
         self.sizeUnitsCombo.addItem("")
@@ -184,7 +185,7 @@ class Ui_Condition(object):
 
         self.horizontalLayout_2.addWidget(self.typeLabel)
 
-        self.typeSwitchCombo = QComboBox(Condition)
+        self.typeSwitchCombo = MacComboBox(Condition)
         self.typeSwitchCombo.addItem("")
         self.typeSwitchCombo.addItem("")
         self.typeSwitchCombo.setObjectName(u"typeSwitchCombo")
@@ -196,7 +197,7 @@ class Ui_Condition(object):
 
         self.horizontalLayout_2.addWidget(self.typeSwitchCombo)
 
-        self.typeCombo = QComboBox(Condition)
+        self.typeCombo = MacComboBox(Condition)
         self.typeCombo.setObjectName(u"typeCombo")
 
         self.horizontalLayout_2.addWidget(self.typeCombo)

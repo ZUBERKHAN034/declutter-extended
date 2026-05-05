@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QComboB
     QPushButton, QRadioButton, QSizePolicy, QSpacerItem,
     QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout,
     QWidget)
+from zeno.ui.widgets import MacComboBox
 
 class Ui_settingsDialog(object):
     def setupUi(self, settingsDialog):
@@ -80,7 +81,7 @@ class Ui_settingsDialog(object):
 
         self.geminiModelLayout.addWidget(self.geminiModelLabel)
 
-        self.geminiModelCombo = QComboBox(self.geminiGroupBox)
+        self.geminiModelCombo = MacComboBox(self.geminiGroupBox)
         self.geminiModelCombo.setObjectName(u"geminiModelCombo")
 
         self.geminiModelLayout.addWidget(self.geminiModelCombo)
@@ -330,9 +331,9 @@ class Ui_settingsDialog(object):
         self.label_5.setText(QCoreApplication.translate("settingsDialog", u"To remove a format leave its name empty", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.fileTypesTab), QCoreApplication.translate("settingsDialog", u"File Types", None))
         self.aboutLogoLabel.setText("")
-        self.aboutNameLabel.setText(QCoreApplication.translate("settingsDialog", u"DeClutter", None))
+        self.aboutNameLabel.setText(QCoreApplication.translate("settingsDialog", u"Zeno", None))
         self.aboutVersionLabel.setText(QCoreApplication.translate("settingsDialog", u"Version", None))
-        self.aboutGithubLabel.setText(QCoreApplication.translate("settingsDialog", u"<a href=\"https://github.com/ZUBERKHAN034/declutter-extended\">View on GitHub</a>", None))
+        self.aboutGithubLabel.setText(QCoreApplication.translate("settingsDialog", u"<a href=\"https://github.com/ZUBERKHAN034/zeno-extended\">View on GitHub</a>", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.aboutTab), QCoreApplication.translate("settingsDialog", u"About", None))
     # retranslateUi
 
