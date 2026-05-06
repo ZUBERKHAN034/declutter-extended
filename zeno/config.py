@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from appdirs import user_data_dir
 
-VERSION = "1.13.8"
+VERSION = "1.0.0"
 
 APP_FOLDER = user_data_dir("Zeno", appauthor='', roaming=True)
 Path(APP_FOLDER).mkdir(parents=True, exist_ok=True)
