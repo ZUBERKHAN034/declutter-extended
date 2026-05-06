@@ -286,7 +286,7 @@ class RuleEditWindow(QDialog):
             msgBox.ui.label.setText(str(len(affected)) + " file(s) affected by this rule:")
         else:
             msgBox.ui.label.setText("No files affected by this rule.")
-        populate_styled_list(msgBox.ui.listWidget, affected)
+        populate_styled_list(msgBox.ui.listWidget, affected, placeholder_text="No files affected by this rule.")
 
         msgBox.exec()
 

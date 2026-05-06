@@ -280,7 +280,10 @@ class RulesWindow(QMainWindow):
 
     def move_rule_up(self):
         """Moves the selected rule up in the list."""
-        rule_idx = self.ui.rulesTable.selectedIndexes()[0].row()
+        selected = self.ui.rulesTable.selectedIndexes()
+        if not selected:
+            return
+        rule_idx = selected[0].row()
         if rule_idx:
             rule_id = int(self.settings["rules"][rule_idx]["id"])
             self.settings["rules"][rule_idx]["id"] = self.settings["rules"][
@@ -306,7 +309,10 @@ class RulesWindow(QMainWindow):
 
     def move_rule_down(self):
         """Moves the selected rule down in the list."""
-        rule_idx = self.ui.rulesTable.selectedIndexes()[0].row()
+        selected = self.ui.rulesTable.selectedIndexes()
+        if not selected:
+            return
+        rule_idx = selected[0].row()
         if rule_idx < self.ui.rulesTable.rowCount() - 1:
             rule_id = int(self.settings["rules"][rule_idx]["id"])
             self.settings["rules"][rule_idx]["id"] = self.settings["rules"][
@@ -622,14 +628,6 @@ class RulesWindow(QMainWindow):
         self.trayIcon.setIcon(_tray_icon)
         self.trayIcon.setVisible(True)
         self.trayIcon.show()
-
-    def _recreate_tray_icon(self):
-        """Refresh tray icon after macOS activation policy changes."""
-        if hasattr(self, 'trayIcon') and self.trayIcon is not None:
-            self.trayIcon.hide()
-            # Process pending events so the hide is fully committed before show
-            QApplication.instance().processEvents()
-            self.trayIcon.show()
 
     def setVisible(self, visible):
         """Sets the visibility of the main window and updates the tray icon actions accordingly."""
