@@ -1,5 +1,5 @@
 cx_Freeze
-PySide6
+PySide6-essentials
 send2trash
 appdirs
 autopep8

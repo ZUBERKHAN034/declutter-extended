@@ -25,6 +25,7 @@ build_exe_options = {
         "PySide6.QtStateMachine", "PySide6.QtUiTools",
     ],
     "packages": ["os", "sys", "collections", "PySide6", "zeno", "requests", "certifi", "charset_normalizer"],
+    # PySide6-essentials is used in development; cx_Freeze handles the Qt subset at build time.
     "include_files": [
         os.path.join("assets", "zeno_logo.icns"),
     ],
