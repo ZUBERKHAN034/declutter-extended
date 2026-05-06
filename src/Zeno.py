@@ -266,7 +266,7 @@ class RulesWindow(QMainWindow):
                     if reply == QMessageBox.Yes:
                         try:
                             webbrowser.open(
-                                "https://github.com/midnightdim/zeno/releases/latest"
+                                "https://github.com/ZUBERKHAN034/Zeno/releases/latest"
                             )
                         except Exception as e:
                             logging.exception(f"exception {e}")
@@ -343,7 +343,7 @@ class RulesWindow(QMainWindow):
             "About Zeno",
             "Zeno version "
             + str(VERSION)
-            + "\nhttps://github.com/midnightdim/zeno\nAuthor: Dmitry Beloglazov\nTelegram: @beloglazov",
+            + "\nhttps://github.com/ZUBERKHAN034/Zeno",
         )
 
     def show_settings(self):
@@ -411,7 +411,7 @@ class RulesWindow(QMainWindow):
             )
         else:
             msgBox.ui.label.setText("No files affected by this rule.")
-        populate_styled_list(msgBox.ui.listWidget, affected, placeholder_text="No files affected by this rule.")
+        populate_styled_list(msgBox.ui.listWidget, affected)
         msgBox.exec()
         self.service_run_details = []
 
@@ -568,7 +568,7 @@ class RulesWindow(QMainWindow):
             )
         else:
             msgBox.ui.label.setText("No files affected by this rule.")
-        populate_styled_list(msgBox.ui.listWidget, affected, placeholder_text="No files affected by this rule.")
+        populate_styled_list(msgBox.ui.listWidget, affected)
         msgBox.exec()
 
     def load_rules(self):
@@ -750,7 +750,7 @@ class new_version_checker(QThread):
     def run(self):
         try:
             response = requests.get(
-                "https://api.github.com/repos/midnightdim/zeno/releases/latest"
+                "https://api.github.com/repos/ZUBERKHAN034/Zeno/releases/latest"
             )
             if response.status_code == 200:
                 latest_version = response.json()["tag_name"]
