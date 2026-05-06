@@ -280,7 +280,7 @@ class RuleEditWindow(QDialog):
         style_section_label(msgBox.ui.label)
         close_btn = msgBox.ui.buttonBox.button(QDialogButtonBox.Close)
         if close_btn:
-            style_secondary_btn(close_btn)
+            style_primary_btn(close_btn)
 
         affected = get_files_affected_by_rule(self.rule)
         if affected:

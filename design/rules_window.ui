@@ -203,7 +203,7 @@
     <string>Add</string>
    </property>
    <property name="toolTip">
-    <string>Add</string>
+    <string>Add a new rule</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -230,6 +230,9 @@
    <property name="text">
     <string>Delete</string>
    </property>
+   <property name="toolTip">
+    <string>Delete the selected rule</string>
+   </property>
    <property name="shortcut">
     <string>Del</string>
    </property>
@@ -244,6 +247,9 @@
    </property>
    <property name="text">
     <string>Execute</string>
+   </property>
+   <property name="toolTip">
+    <string>Run all enabled rules now</string>
    </property>
    <property name="font">
     <font>
@@ -272,6 +278,9 @@
    <property name="text">
     <string>Move up</string>
    </property>
+   <property name="toolTip">
+    <string>Move the selected rule up</string>
+   </property>
    <property name="shortcut">
     <string>Up</string>
    </property>
@@ -283,6 +292,9 @@
    </property>
    <property name="text">
     <string>Move down</string>
+   </property>
+   <property name="toolTip">
+    <string>Move the selected rule down</string>
    </property>
    <property name="shortcut">
     <string>Down</string>
@@ -329,10 +341,16 @@
    <property name="text">
     <string>Settings</string>
    </property>
+   <property name="toolTip">
+    <string>Open Zeno settings</string>
+   </property>
   </action>
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+   <property name="toolTip">
+    <string>About Zeno</string>
    </property>
   </action>
  </widget>

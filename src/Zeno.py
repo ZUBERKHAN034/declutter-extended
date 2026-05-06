@@ -403,7 +403,7 @@ class RulesWindow(QMainWindow):
         style_section_label(msgBox.ui.label)
         close_btn = msgBox.ui.buttonBox.button(QDialogButtonBox.Close)
         if close_btn:
-            style_secondary_btn(close_btn)
+            style_primary_btn(close_btn)
         affected = self.service_run_details
         if affected:
             msgBox.ui.label.setText(
@@ -560,7 +560,7 @@ class RulesWindow(QMainWindow):
         style_section_label(msgBox.ui.label)
         close_btn = msgBox.ui.buttonBox.button(QDialogButtonBox.Close)
         if close_btn:
-            style_secondary_btn(close_btn)
+            style_primary_btn(close_btn)
 
         if affected:
             msgBox.ui.label.setText(

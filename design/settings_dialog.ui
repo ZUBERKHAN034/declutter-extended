@@ -398,7 +398,7 @@
           <bool>true</bool>
          </property>
          <property name="text">
-          <string>&lt;a href=&quot;https://github.com/ZUBERKHAN034/zeno-extended&quot;&gt;View on GitHub&lt;/a&gt;</string>
+          <string>&lt;a href=&quot;https://github.com/ZUBERKHAN034/zeno&quot;&gt;View on GitHub&lt;/a&gt;</string>
          </property>
         </widget>
        </item>

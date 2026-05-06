@@ -118,7 +118,7 @@ def populate_styled_list(list_widget: QListWidget, items, fill_empty_rows: bool 
 
     # Pad with empty rows to fill the visible area (no scrolling until real items overflow)
     cap = _visible_row_capacity(list_widget)
-    DEFAULT_PAD = 50  # generous padding to prevent early scrollbar appearance
+    DEFAULT_PAD = 5  # small padding for subtle two-tone effect
     pad = DEFAULT_PAD if fill_empty_rows else max(0, cap - start)
     for _ in range(start, start + pad):
         empty = QListWidgetItem("")

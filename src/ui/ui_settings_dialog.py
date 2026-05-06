@@ -333,7 +333,7 @@ class Ui_settingsDialog(object):
         self.aboutLogoLabel.setText("")
         self.aboutNameLabel.setText(QCoreApplication.translate("settingsDialog", u"Zeno", None))
         self.aboutVersionLabel.setText(QCoreApplication.translate("settingsDialog", u"Version", None))
-        self.aboutGithubLabel.setText(QCoreApplication.translate("settingsDialog", u"<a href=\"https://github.com/ZUBERKHAN034/zeno-extended\">View on GitHub</a>", None))
+        self.aboutGithubLabel.setText(QCoreApplication.translate("settingsDialog", u"<a href=\"https://github.com/ZUBERKHAN034/zeno\">View on GitHub</a>", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.aboutTab), QCoreApplication.translate("settingsDialog", u"About", None))
     # retranslateUi
 

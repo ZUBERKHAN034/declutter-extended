@@ -60,10 +60,15 @@ class SettingsDialog(QDialog):
         self.ui.setupUi(self)
         self.ui.aboutVersionLabel.setText(f"Version {VERSION}")
         from PySide6.QtGui import QPixmap
-        import os
-        self.ui.aboutLogoLabel.setPixmap(
-            QPixmap(os.path.join(os.path.dirname(__file__), "..", "assets", "zeno_logo.png")).scaled(
-                QSize(80, 80), Qt.AspectRatioMode.KeepAspectRatio,
+        import os, sys
+        try:
+            _base = sys._MEIPASS  # PyInstaller bundle
+        except AttributeError:
+            _base = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
+        logo_pix = QPixmap(os.path.join(_base, "assets", "zeno_logo.png"))
+        if not logo_pix.isNull():
+            self.ui.aboutLogoLabel.setPixmap(logo_pix.scaled(
+                QSize(96, 96), Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation))
         apply_macos_styling(self)
         self._apply_styles()
