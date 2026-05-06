@@ -74,14 +74,15 @@ def style_list_widget(w: QListWidget):
     w.viewport().setAutoFillBackground(False)
     w.setAlternatingRowColors(True)
     w.setStyleSheet(f"""
-        QListWidget {{ background-color: {C.row_bg()}; color: {C.text()}; border: 1.5px solid {C.border()}; border-radius: {R.card}; outline: none; padding: 3px; font-family: "SF Pro Text"; font-size: 13px; }}
-        QListWidget::item {{ padding: 7px 10px; border-radius: {R.inner}; color: {C.text()}; background: {C.row_alt()}; }}
-        QListWidget::item:alternate {{ background: {C.row_bg()}; }}
+        QListWidget {{ background-color: {C.row_bg()}; alternate-background-color: {C.row_alt()}; color: {C.text()}; border: 1.5px solid {C.border()}; border-radius: {R.card}; outline: none; padding: 3px; font-family: "SF Pro Text"; font-size: 13px; }}
+        QListWidget::item {{ padding: 7px 10px; border-radius: {R.inner}; color: {C.text()}; }}
         QListWidget::item:hover:!selected {{ background-color: {C.row_hover()}; }}
         QListWidget::item:selected {{ background-color: {C.row_selected()}; color: {C.row_selected_text()}; }}
         QListWidget::item:selected:!active {{ background-color: {C.row_selected()}; color: {C.row_selected_text()}; }}
     """)
     p = w.palette()
+    p.setColor(QPalette.ColorRole.Base, QColor(C.row_bg()))
+    p.setColor(QPalette.ColorRole.AlternateBase, QColor(C.row_alt()))
     p.setColor(QPalette.ColorRole.Text, QColor(C.text()))
     p.setColor(QPalette.ColorRole.Highlight, QColor(C.row_selected()))
     p.setColor(QPalette.ColorRole.HighlightedText, QColor(C.row_selected_text()))
@@ -100,20 +101,14 @@ def _visible_row_capacity(list_widget: QListWidget) -> int:
     return max(6, h // rh)
 
 
-def populate_styled_list(list_widget: QListWidget, items, fill_empty_rows: bool = True, placeholder_text: str = "No items."):
+def populate_styled_list(list_widget: QListWidget, items, fill_empty_rows: bool = True):
     """Populate a QListWidget, relying on style_list_widget's alternating palette."""
     list_widget.clear()
+    list_widget.reset()
     all_items = list(items) if items else []
 
     if not all_items:
-        if fill_empty_rows:
-            placeholder = QListWidgetItem(placeholder_text)
-            placeholder.setFlags(Qt.NoItemFlags)
-            placeholder.setForeground(QColor(C.text_secondary()))
-            list_widget.addItem(placeholder)
-            start = 1
-        else:
-            start = 0
+        start = 0
     else:
         for text in all_items:
             item = QListWidgetItem(text)

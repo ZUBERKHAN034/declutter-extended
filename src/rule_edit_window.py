@@ -79,6 +79,7 @@ class RuleEditWindow(QDialog):
 
         self.ui.ruleNameEdit.setFocus()
         self.action_change()
+        self.load_rule(self.rule)
 
     def _apply_styles(self):
         """Apply design-token styling. Re-runs on dark/light switch."""
