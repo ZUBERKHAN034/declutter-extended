@@ -78,6 +78,17 @@ if sys.platform == "darwin":
     from zeno.ui.ai_rule_dialog import AIRuleDialog
 
 
+_main_window = None
+
+
+def _ensure_main_window():
+    """Lazy factory for the main rules window."""
+    global _main_window
+    if _main_window is None:
+        _main_window = RulesWindow()
+    return _main_window
+
+
 class RulesWindow(QMainWindow):
     """Main application window for managing zenoing rules."""
 
@@ -264,9 +275,8 @@ class RulesWindow(QMainWindow):
 
     def tray_activated(self, reason):
         """Handles activation of the system tray icon."""
-        if reason == QSystemTrayIcon.Trigger or reason == QSystemTrayIcon.DoubleClick:
-            self.trayIconMenu.close()
-            self.showNormal()
+        if reason == QSystemTrayIcon.DoubleClick:
+            self.setVisible(True)
 
     def move_rule_up(self):
         """Moves the selected rule up in the list."""
@@ -613,6 +623,14 @@ class RulesWindow(QMainWindow):
         self.trayIcon.setVisible(True)
         self.trayIcon.show()
 
+    def _recreate_tray_icon(self):
+        """Refresh tray icon after macOS activation policy changes."""
+        if hasattr(self, 'trayIcon') and self.trayIcon is not None:
+            self.trayIcon.hide()
+            # Process pending events so the hide is fully committed before show
+            QApplication.instance().processEvents()
+            self.trayIcon.show()
+
     def setVisible(self, visible):
         """Sets the visibility of the main window and updates the tray icon actions accordingly."""
         self.minimizeAction.setEnabled(visible)
@@ -628,8 +646,8 @@ class RulesWindow(QMainWindow):
         QApplication.quit()
 
     def showEvent(self, e):
-        # Ensure a user-shown window will be shown next startup
         _set_macos_activation_policy(False)
+        # Ensure a user-shown window will be shown next startup
         try:
             s = load_settings()
             s["rules_window_visible_on_exit"] = True
@@ -719,6 +737,8 @@ class zeno_service(QThread):
         except Exception as e:
             logging.exception(f"Scheduled rule execution failed: {e}")
             self.signals.signal1.emit("", [])
+        import gc
+        gc.collect()
 
 
 class new_version_checker(QThread):
@@ -792,13 +812,14 @@ def main():
     # app follows macOS appearance changes live.
     init_macos_theme(app)
 
-    window = RulesWindow()
+    window = _ensure_main_window()
 
     # Clean up tray icon on quit so a stale icon never lingers
     def _cleanup_tray():
-        if hasattr(window, 'trayIcon') and window.trayIcon is not None:
-            window.trayIcon.hide()
-            window.trayIcon.deleteLater()
+        global _main_window
+        if _main_window is not None and hasattr(_main_window, 'trayIcon') and _main_window.trayIcon is not None:
+            _main_window.trayIcon.hide()
+            _main_window.trayIcon.deleteLater()
     app.aboutToQuit.connect(_cleanup_tray)
 
     # Decide visibility based on persisted flag

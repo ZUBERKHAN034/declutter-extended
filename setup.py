@@ -18,7 +18,11 @@ build_exe_options = {
         "PySide6.QtSql", "PySide6.QtSvg", "PySide6.QtTextToSpeech",
         "PySide6.QtVirtualKeyboard", "PySide6.QtWebChannel", "PySide6.QtWebEngine",
         "PySide6.QtWebEngineCore", "PySide6.QtWebEngineWidgets",
-        "PySide6.QtWebSockets", "PySide6.QtXmlPatterns"
+        "PySide6.QtWebSockets", "PySide6.QtXmlPatterns",
+        "PySide6.QtMultimedia", "PySide6.QtMultimediaWidgets",
+        "PySide6.QtDesigner", "PySide6.QtHelp",
+        "PySide6.QtTest", "PySide6.QtXml",
+        "PySide6.QtStateMachine", "PySide6.QtUiTools",
     ],
     "packages": ["os", "sys", "collections", "PySide6", "zeno", "requests", "certifi", "charset_normalizer"],
     "include_files": [

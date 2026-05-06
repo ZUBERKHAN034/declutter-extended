@@ -4,9 +4,6 @@ import json
 import os
 from typing import Any, Dict, Optional, Tuple
 
-from google import genai
-from google.genai import types
-
 from zeno.store import load_settings
 
 
@@ -103,6 +100,7 @@ class GeminiService:
     """Thin wrapper around Google Generative AI for rule generation."""
 
     def __init__(self, api_key: str, model: str | None = None):
+        from google import genai
         if not api_key:
             raise ValueError("A valid Gemini API key is required.")
         self._client = genai.Client(api_key=api_key)
@@ -145,6 +143,8 @@ class GeminiService:
                 os.path.join(home, "Documents"),
             ])),
         )
+
+        from google.genai import types
 
         response = self._client.models.generate_content(
             model=self._model,
