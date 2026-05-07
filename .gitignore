@@ -13,3 +13,9 @@ sandbox/
 ui/icons/
 .vscode
 .DS_Store
+
+# Tooling and AI context
+graphify-out/
+.gemini/
+GEMINI.md
+.windsurfrules

@@ -185,12 +185,6 @@ def style_section_label(lbl: QLabel):
     """)
 
 
-def style_secondary_label(lbl: QLabel):
-    lbl.setStyleSheet(f"""
-        QLabel {{ color: {C.text_secondary()}; font-family: "SF Pro Text"; font-size: 12px; background: transparent; }}
-    """)
-
-
 def style_status_label(lbl: QLabel, status: str = "normal"):
     color = {"success": C.success(), "error": C.error(), "warning": C.warning(), "normal": C.text_secondary()}.get(status, C.text_secondary())
     lbl.setStyleSheet(f"""
@@ -205,18 +199,6 @@ def style_tab_widget(w: QTabWidget):
         QTabBar::tab {{ background: transparent; color: {C.text_secondary()}; padding: 7px 16px; border: none; font-family: "SF Pro Text"; font-size: 13px; }}
         QTabBar::tab:selected {{ color: {C.text()}; font-weight: 600; border-bottom: 2px solid {C.accent()}; }}
         QTabBar::tab:hover:!selected {{ color: {C.text()}; }}
-    """)
-
-
-def style_scroll_area(w):
-    w.setStyleSheet(f"""
-        QScrollArea {{ border: none; background: transparent; }}
-        QScrollBar:vertical {{ width: 6px; background: transparent; }}
-        QScrollBar::handle:vertical {{ background: {C.border()}; border-radius: 3px; min-height: 20px; }}
-        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{ height: 0; }}
-        QScrollBar:horizontal {{ height: 6px; background: transparent; }}
-        QScrollBar::handle:horizontal {{ background: {C.border()}; border-radius: 3px; min-width: 20px; }}
-        QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{ width: 0; }}
     """)
 
 
