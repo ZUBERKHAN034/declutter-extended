@@ -106,6 +106,47 @@ class GeminiService:
         self._client = genai.Client(api_key=api_key)
         self._model = model or list(MODEL_CHOICES.values())[0]
 
+    @staticmethod
+    def map_gemini_error(exc: Exception) -> str:
+        """Map a raw Gemini API exception to a user-friendly string."""
+        msg = str(exc)
+        msg_lower = msg.lower()
+
+        # 429: Resource Exhausted / Rate Limit
+        if "429" in msg or "rate" in msg_lower or "quota" in msg_lower:
+            return "Network error: This model is currently experiencing high demand. Please try again later."
+
+        # 500: Internal Server Error
+        if "500" in msg or "internal" in msg_lower or "server error" in msg_lower:
+            return "Server error: Something went wrong on Google's side. Please try again in a moment."
+
+        # 503: Service Unavailable
+        if "503" in msg or "unavailable" in msg_lower:
+            return "Service unavailable: Gemini is temporarily unavailable. Please try again later."
+
+        # 401: Unauthenticated
+        if "401" in msg or "unauthenticated" in msg_lower or "invalid" in msg_lower:
+            return "Auth error: Your API key is invalid or has expired. Please check your settings."
+
+        # 403: Permission Denied
+        if "403" in msg or "permission" in msg_lower or "forbidden" in msg_lower:
+            return "Permission error: Your API key doesn't have access to this model."
+
+        # 404: Not Found (often model name)
+        if "404" in msg or "not found" in msg_lower or "not_found" in msg:
+            return "Model error: The selected AI model could not be found. Try a different one in Settings."
+
+        # Connection issues
+        if "connection" in msg_lower or "timeout" in msg_lower or "network" in msg_lower:
+            return "Network error: Could not reach Gemini. Please check your internet connection."
+
+        # API key related
+        if "api key" in msg_lower or "api_key" in msg:
+            return "Auth error: Please provide a valid API key in Settings."
+
+        # Generic error - show a friendly message instead of raw error
+        return "Connection failed. Please check your API key and try again."
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------

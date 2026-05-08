@@ -63,7 +63,17 @@ class Ui_settingsDialog(object):
         self.horizontalLayout.addItem(self.horizontalSpacer)
 
 
-        self.verticalLayout_2.addLayout(self.horizontalLayout)
+        self.verticalLayout_5 = QVBoxLayout()
+        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
+
+        self.verticalLayout_5.addLayout(self.horizontalLayout)
+
+        self.scheduleGroupBox = QGroupBox(self.mainTab)
+        self.scheduleGroupBox.setObjectName(u"scheduleGroupBox")
+
+        self.scheduleGroupBox.setLayout(self.verticalLayout_5)
+
+        self.verticalLayout_2.addWidget(self.scheduleGroupBox)
 
         self.geminiGroupBox = QGroupBox(self.mainTab)
         self.geminiGroupBox.setObjectName(u"geminiGroupBox")
@@ -74,35 +84,12 @@ class Ui_settingsDialog(object):
 
         self.verticalLayout_3.addWidget(self.geminiEnableCheckBox)
 
-        self.geminiModelLayout = QHBoxLayout()
-        self.geminiModelLayout.setObjectName(u"geminiModelLayout")
-        self.geminiModelLabel = QLabel(self.geminiGroupBox)
-        self.geminiModelLabel.setObjectName(u"geminiModelLabel")
-
-        self.geminiModelLayout.addWidget(self.geminiModelLabel)
-
-        self.geminiModelCombo = MacComboBox(self.geminiGroupBox)
-        self.geminiModelCombo.setObjectName(u"geminiModelCombo")
-
-        self.geminiModelLayout.addWidget(self.geminiModelCombo)
-
-        self.geminiModelSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.geminiModelLayout.addItem(self.geminiModelSpacer)
-
-
-        self.verticalLayout_3.addLayout(self.geminiModelLayout)
-
         self.geminiKeyLayout = QHBoxLayout()
         self.geminiKeyLayout.setObjectName(u"geminiKeyLayout")
-        self.geminiKeyLabel = QLabel(self.geminiGroupBox)
-        self.geminiKeyLabel.setObjectName(u"geminiKeyLabel")
-
-        self.geminiKeyLayout.addWidget(self.geminiKeyLabel)
-
         self.geminiKeyEdit = QLineEdit(self.geminiGroupBox)
         self.geminiKeyEdit.setObjectName(u"geminiKeyEdit")
         self.geminiKeyEdit.setEchoMode(QLineEdit.EchoMode.Password)
+        self.geminiKeyEdit.setPlaceholderText("Please Provide a Valid Gemini API Key Here")
 
         self.geminiKeyLayout.addWidget(self.geminiKeyEdit)
 
@@ -115,34 +102,45 @@ class Ui_settingsDialog(object):
 
         self.verticalLayout_3.addLayout(self.geminiKeyLayout)
 
-        self.geminiTestLayout = QHBoxLayout()
-        self.geminiTestLayout.setObjectName(u"geminiTestLayout")
+        self.geminiModelLayout = QHBoxLayout()
+        self.geminiModelLayout.setObjectName(u"geminiModelLayout")
+
+        self.geminiModelCombo = MacComboBox(self.geminiGroupBox)
+        self.geminiModelCombo.setObjectName(u"geminiModelCombo")
+        self.geminiModelCombo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.geminiModelCombo.setPlaceholderText("Select a Model Here")
+        self.geminiModelCombo.addItem("Select a Model Here")
+
+        self.geminiModelLayout.addWidget(self.geminiModelCombo, 3)
+
         self.geminiTestButton = QPushButton(self.geminiGroupBox)
         self.geminiTestButton.setObjectName(u"geminiTestButton")
+        self.geminiTestButton.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
-        self.geminiTestLayout.addWidget(self.geminiTestButton)
-
-        self.geminiStatusLabel = QLabel(self.geminiGroupBox)
-        self.geminiStatusLabel.setObjectName(u"geminiStatusLabel")
-
-        self.geminiTestLayout.addWidget(self.geminiStatusLabel)
-
-        self.geminiTestSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.geminiTestLayout.addItem(self.geminiTestSpacer)
+        self.geminiModelLayout.addWidget(self.geminiTestButton, 1)
 
 
-        self.verticalLayout_3.addLayout(self.geminiTestLayout)
+        self.verticalLayout_3.addLayout(self.geminiModelLayout)
 
 
         self.verticalLayout_2.addWidget(self.geminiGroupBox)
 
+        self.verticalLayout_4 = QVBoxLayout()
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+
         self.startAtLoginCheckBox = QCheckBox(self.mainTab)
         self.startAtLoginCheckBox.setObjectName(u"startAtLoginCheckBox")
 
-        self.verticalLayout_2.addWidget(self.startAtLoginCheckBox)
+        self.verticalLayout_4.addWidget(self.startAtLoginCheckBox)
 
-        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.startupGroupBox = QGroupBox(self.mainTab)
+        self.startupGroupBox.setObjectName(u"startupGroupBox")
+
+        self.startupGroupBox.setLayout(self.verticalLayout_4)
+
+        self.verticalLayout_2.addWidget(self.startupGroupBox)
+
+        self.verticalSpacer_2 = QSpacerItem(20, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_2.addItem(self.verticalSpacer_2)
 
@@ -306,14 +304,13 @@ class Ui_settingsDialog(object):
         settingsDialog.setWindowTitle(QCoreApplication.translate("settingsDialog", u"Settings", None))
         self.label_2.setText(QCoreApplication.translate("settingsDialog", u"Process rules every", None))
         self.label_3.setText(QCoreApplication.translate("settingsDialog", u"minutes", None))
+        self.scheduleGroupBox.setTitle("")
         self.geminiGroupBox.setTitle("")
-        self.geminiEnableCheckBox.setText(QCoreApplication.translate("settingsDialog", u"Enable AI generation", None))
-        self.geminiModelLabel.setText(QCoreApplication.translate("settingsDialog", u"Model", None))
-        self.geminiKeyLabel.setText(QCoreApplication.translate("settingsDialog", u"Gemini API Key", None))
+        self.geminiEnableCheckBox.setText(QCoreApplication.translate("settingsDialog", u"Enable AI Generation", None))
         self.geminiShowHideButton.setText(QCoreApplication.translate("settingsDialog", u"Show", None))
         self.geminiTestButton.setText(QCoreApplication.translate("settingsDialog", u"Test Connection", None))
-        self.geminiStatusLabel.setText("")
-        self.startAtLoginCheckBox.setText(QCoreApplication.translate("settingsDialog", u"Launch at startup", None))
+        self.startAtLoginCheckBox.setText(QCoreApplication.translate("settingsDialog", u"Launch Zeno at login", None))
+        self.startupGroupBox.setTitle("")
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.mainTab), QCoreApplication.translate("settingsDialog", u"Main", None))
         self.dateDefGroupBox.setTitle(QCoreApplication.translate("settingsDialog", u"Date definition", None))
         self.label.setText(QCoreApplication.translate("settingsDialog", u"Which date (from file metadata) should be used in rule conditions?", None))
