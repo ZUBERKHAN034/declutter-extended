@@ -14,6 +14,40 @@ def style_primary_btn(btn: QPushButton):
     """)
 
 
+def style_loading_btn(btn):
+    # This styling is dynamic because it depends on the internal state (success/error)
+    # But we set the base styling here.
+    base_bg = C.accent()
+    is_loading = getattr(btn, "_is_loading", False)
+    state = getattr(btn, "_state", "normal")
+    
+    if state == "success":
+        base_bg = C.success()
+    elif state == "error":
+        base_bg = C.error()
+            
+    btn.setStyleSheet(f"""
+        QPushButton {{
+            background-color: {base_bg};
+            color: #ffffff;
+            border-radius: {R.button};
+            padding: 7px 18px;
+            font-family: "SF Pro Text";
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+        }}
+        QPushButton:hover {{ 
+            background-color: {base_bg if btn.isEnabled() else C.btn_disabled_bg()};
+            opacity: 0.9;
+        }}
+        QPushButton:disabled {{ 
+            background-color: {C.btn_disabled_bg() if not is_loading else base_bg}; 
+            color: {C.btn_disabled_text() if not is_loading else "#ffffff"}; 
+        }}
+    """)
+
+
 def style_secondary_btn(btn: QPushButton):
     btn.setStyleSheet(f"""
         QPushButton {{ background-color: {C.btn_bg()}; color: {C.btn_text()}; border: 1px solid {C.btn_border()}; border-radius: {R.button}; padding: 7px 18px; font-family: "SF Pro Text"; font-size: 13px; }}
@@ -185,10 +219,55 @@ def style_section_label(lbl: QLabel):
     """)
 
 
-def style_status_label(lbl: QLabel, status: str = "normal"):
+def style_status_label(lbl: QWidget, status: str = "normal"):
     color = {"success": C.success(), "error": C.error(), "warning": C.warning(), "normal": C.text_secondary()}.get(status, C.text_secondary())
+    bg = {"error": "#fff5f5" if not is_dark() else "#2d1a1a", "success": "#f5fff9" if not is_dark() else "#1a2d21"}.get(status, "transparent")
+    border = {"error": C.error(), "success": C.success()}.get(status, "transparent")
+    
+    selector = "QLabel, QTextEdit"
     lbl.setStyleSheet(f"""
-        QLabel {{ color: {color}; font-family: "SF Pro Text"; font-size: 12px; background: transparent; }}
+        {selector} {{ 
+            color: {color}; 
+            font-family: "SF Pro Text"; 
+            font-size: 13px; 
+            padding: 8px 12px;
+            background-color: {bg};
+            border: 1px solid {border};
+            border-radius: {R.inner};
+        }}
+    """)
+
+
+def style_loading_btn(btn):
+    # This styling is dynamic because it depends on the internal state (success/error/retry)
+    base_bg = C.accent()
+    is_loading = getattr(btn, "_is_loading", False)
+    state = getattr(btn, "_state", "normal")
+    
+    if state == "success":
+        base_bg = C.success()
+    elif state == "error" or state == "retry":
+        base_bg = C.error()
+            
+    btn.setStyleSheet(f"""
+        QPushButton {{
+            background-color: {base_bg};
+            color: #ffffff;
+            border-radius: {R.button};
+            padding: 7px 18px;
+            font-family: "SF Pro Text";
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+        }}
+        QPushButton:hover {{ 
+            background-color: {base_bg if btn.isEnabled() else C.btn_disabled_bg()};
+            opacity: 0.9;
+        }}
+        QPushButton:disabled {{ 
+            background-color: {C.btn_disabled_bg() if not is_loading and state != "retry" else base_bg}; 
+            color: {C.btn_disabled_text() if not is_loading and state != "retry" else "#ffffff"}; 
+        }}
     """)
 
 

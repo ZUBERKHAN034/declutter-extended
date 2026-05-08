@@ -14,11 +14,12 @@ from PySide6.QtWidgets import (
     QPushButton,
     QDialogButtonBox,
     QWidget,
+    QSizePolicy,
+    QGraphicsOpacityEffect,
+    QFrame,
 )
 from PySide6.QtCore import Qt, QThread, Signal as _Signal, QPropertyAnimation, QEasingCurve, QTimer
 from PySide6.QtGui import QPalette
-from PySide6.QtWidgets import QSizePolicy
-from PySide6.QtWidgets import QGraphicsOpacityEffect
 
 from zeno.store import load_settings, list_file_types, list_rules
 from zeno.ui.design_tokens import C, is_dark
@@ -29,8 +30,10 @@ from zeno.ui.style_helpers import (
     style_secondary_btn,
     style_status_label,
     style_section_label,
+    style_loading_btn,
     reapply_styles,
 )
+from zeno.ui.widgets import LoadingButton
 
 _EXAMPLES = [
     "Move all PDFs older than 7 days to a Documents folder",
@@ -203,7 +206,7 @@ class _GenerateRuleWorker(QThread):
             rule = svc.generate_rule(self._prompt, self._context)
             self.success.emit(rule)
         except Exception as exc:
-            msg = f"{type(exc).__name__}: {exc}"
+            msg = GeminiService.map_gemini_error(exc)
             self.failure.emit(msg)
 
 
@@ -437,16 +440,24 @@ class AIRuleDialog(QDialog):
 
         # Generate button row
         gen_row = QHBoxLayout()
-        self._generate_btn = QPushButton("Generate Rule")
+        self._generate_btn = LoadingButton("Generate Rule")
         self._generate_btn.setDefault(True)
         self._generate_btn.clicked.connect(self._on_generate)
         gen_row.addWidget(self._generate_btn)
 
-        self._status_label = QLabel("")
-        self._status_label.setWordWrap(True)
-        gen_row.addWidget(self._status_label, 1)
-        gen_row.addStretch()
+        # Robust status display BELOW
+        self._status_view = QTextEdit()
+        self._status_view.setReadOnly(True)
+        self._status_view.setFrameShape(QFrame.Shape.NoFrame)
+        self._status_view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._status_view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._status_view.setAcceptRichText(True)
+        self._status_view.setMinimumHeight(64)
+        self._status_view.setMaximumHeight(80)
+        self._status_view.setVisible(False)
+        
         layout.addLayout(gen_row)
+        layout.addWidget(self._status_view)
 
         # Preview area
         preview_title = QLabel("Preview")
@@ -501,7 +512,7 @@ class AIRuleDialog(QDialog):
         style_dialog(self)
         style_text_edit(self._desc_edit)
         style_text_edit(self._preview_edit)
-        style_primary_btn(self._generate_btn)
+        style_loading_btn(self._generate_btn)
         style_primary_btn(self._button_box.button(QDialogButtonBox.Ok))
         style_secondary_btn(self._button_box.button(QDialogButtonBox.Cancel))
         style_secondary_btn(self._open_settings_btn)
@@ -518,7 +529,7 @@ class AIRuleDialog(QDialog):
             self._content.setVisible(False)
             self._no_key_widget.setVisible(True)
             self._generate_btn.setEnabled(False)
-            self._status_label.setText("")
+            self._set_status("", None)
         else:
             self._content.setVisible(True)
             self._no_key_widget.setVisible(False)
@@ -553,8 +564,8 @@ class AIRuleDialog(QDialog):
         self._generated_rule = None
         self._preview_edit.setPlainText("")
         self._button_box.button(QDialogButtonBox.Ok).setEnabled(False)
-        self._generate_btn.setEnabled(False)
-        self._generate_btn.setText("Generating…")
+        self._set_status("", None)
+        self._generate_btn.start_loading("Generating…")
 
         settings = load_settings()
         api_key = settings.get("gemini_api_key", "").strip()
@@ -595,28 +606,26 @@ class AIRuleDialog(QDialog):
             app_rule = _convert_gemini_rule_to_app(gemini_rule)
         except Exception as exc:
             self._set_status(f"Conversion error: {exc}", error=True)
-            self._generate_btn.setEnabled(True)
-            self._generate_btn.setText("Generate Rule")
+            self._generate_btn.show_error("Conversion Error")
             return
 
         self._generated_rule = app_rule
         self._preview_edit.setPlainText(_human_readable_summary(app_rule))
         self._set_status("Rule generated successfully.", error=False)
         self._button_box.button(QDialogButtonBox.Ok).setEnabled(True)
-        self._generate_btn.setEnabled(True)
-        self._generate_btn.setText("Regenerate")
+        self._generate_btn.show_success("Done!")
+        QTimer.singleShot(2000, lambda: self._update_generate_btn_text("Regenerate"))
 
     def _on_generation_failure(self, message: str):
         display = message if len(message) <= 200 else message[:197] + "…"
         self._set_status(display, error=True)
-        self._generate_btn.setEnabled(True)
-        self._generate_btn.setText("Generate Rule")
+        self._generate_btn.show_retry(5)
 
     def _on_generation_finished(self):
-        self._generate_btn.setEnabled(True)
-        if self._generate_btn.text() == "Generating…":
-            self._generate_btn.setText("Generate Rule")
         self._worker = None
+
+    def _update_generate_btn_text(self, text):
+        self._generate_btn.stop_loading(text)
 
     def _on_example_clicked(self, text: str):
         self._desc_edit.setPlainText(text)
@@ -630,7 +639,7 @@ class AIRuleDialog(QDialog):
     # -- Helpers ----------------------------------------------------------
 
     def _set_status(self, text: str, error: bool | str | None):
-        self._status_label.setText(text)
+        self._status_view.setText(text)
         if error is True:
             status = "error"
         elif error == "warning":
@@ -639,8 +648,10 @@ class AIRuleDialog(QDialog):
             status = "success"
         else:
             status = "normal"
+            self._status_view.setText("")
         self._last_status = status
-        style_status_label(self._status_label, status=status)
+        style_status_label(self._status_view, status=status)
+        self._status_view.setVisible(bool(text))
 
 
 if __name__ == "__main__":
