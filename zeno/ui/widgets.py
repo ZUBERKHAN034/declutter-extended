@@ -1,9 +1,8 @@
 """Advanced button with loading spinner and state-based feedback (Success/Error/Retry)."""
 
 from PySide6.QtWidgets import QPushButton, QComboBox, QListView, QFrame, QTableWidget, QStyle, QStyleOptionButton
-from PySide6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, QRectF, QRect, Property, Signal as _Signal
-from PySide6.QtGui import QPainter, QColor, QPen, QBrush, QPalette
-from zeno.ui.design_tokens import C, R
+from PySide6.QtCore import Qt, QTimer, QRectF, QRect, Signal as _Signal
+from PySide6.QtGui import QPainter, QColor, QPen, QPalette
 
 class MacComboBox(QComboBox):
     """QComboBox subclass that removes the native macOS popup container square.

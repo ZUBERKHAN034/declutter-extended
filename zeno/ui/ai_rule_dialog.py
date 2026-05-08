@@ -19,17 +19,15 @@ from PySide6.QtWidgets import (
     QFrame,
 )
 from PySide6.QtCore import Qt, QThread, Signal as _Signal, QPropertyAnimation, QEasingCurve, QTimer
-from PySide6.QtGui import QPalette
 
 from zeno.store import load_settings, list_file_types, list_rules
-from zeno.ui.design_tokens import C, is_dark
+from zeno.ui.design_tokens import C
 from zeno.ui.style_helpers import (
     style_dialog,
     style_text_edit,
     style_primary_btn,
     style_secondary_btn,
     style_status_label,
-    style_section_label,
     style_loading_btn,
     reapply_styles,
 )

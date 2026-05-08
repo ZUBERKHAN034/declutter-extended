@@ -1,6 +1,6 @@
 """All styling logic lives here. Every dialog calls these — no inline stylesheets."""
-from PySide6.QtWidgets import QWidget, QPushButton, QLineEdit, QTextEdit, QComboBox, QListWidget, QListWidgetItem, QTableWidget, QCheckBox, QLabel, QTabWidget, QFrame, QScrollArea
-from PySide6.QtGui import QPalette, QColor, QFont
+from PySide6.QtWidgets import QWidget, QPushButton, QLineEdit, QTextEdit, QComboBox, QListWidget, QListWidgetItem, QTableWidget, QCheckBox, QLabel, QTabWidget, QFrame
+from PySide6.QtGui import QPalette, QColor
 from PySide6.QtCore import Qt
 from zeno.ui.design_tokens import C, R, is_dark
 
@@ -11,40 +11,6 @@ def style_primary_btn(btn: QPushButton):
         QPushButton:hover {{ background-color: {C.accent_hover()}; }}
         QPushButton:pressed {{ opacity: 0.8; }}
         QPushButton:disabled {{ background-color: {C.btn_disabled_bg()}; color: {C.btn_disabled_text()}; }}
-    """)
-
-
-def style_loading_btn(btn):
-    # This styling is dynamic because it depends on the internal state (success/error)
-    # But we set the base styling here.
-    base_bg = C.accent()
-    is_loading = getattr(btn, "_is_loading", False)
-    state = getattr(btn, "_state", "normal")
-    
-    if state == "success":
-        base_bg = C.success()
-    elif state == "error":
-        base_bg = C.error()
-            
-    btn.setStyleSheet(f"""
-        QPushButton {{
-            background-color: {base_bg};
-            color: #ffffff;
-            border-radius: {R.button};
-            padding: 7px 18px;
-            font-family: "SF Pro Text";
-            font-size: 13px;
-            font-weight: 600;
-            border: none;
-        }}
-        QPushButton:hover {{ 
-            background-color: {base_bg if btn.isEnabled() else C.btn_disabled_bg()};
-            opacity: 0.9;
-        }}
-        QPushButton:disabled {{ 
-            background-color: {C.btn_disabled_bg() if not is_loading else base_bg}; 
-            color: {C.btn_disabled_text() if not is_loading else "#ffffff"}; 
-        }}
     """)
 
 

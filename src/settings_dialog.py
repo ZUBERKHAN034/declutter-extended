@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import (
     QDialog, QTableWidgetItem, QApplication, QMessageBox,
-    QLineEdit, QComboBox, QRadioButton, QDialogButtonBox, QHBoxLayout, QVBoxLayout, QFrame, QSpacerItem, QSizePolicy
+    QLineEdit, QRadioButton, QDialogButtonBox, QSizePolicy
 )
-from PySide6.QtCore import Qt, QSize, QThread, QTimer, Signal as _Signal
+from PySide6.QtCore import Qt, QSize, QThread, Signal as _Signal
 from zeno.config import VERSION
 from zeno.store import load_settings, save_settings
 from src.startup import is_enabled as startup_is_enabled, enable as startup_enable, disable as startup_disable
@@ -125,7 +125,7 @@ class SettingsDialog(QDialog):
             return
         
         # 1. SVG Icons for Show/Hide
-        from PySide6.QtGui import QAction, QIcon, QPixmap, QColor, QPainter
+        from PySide6.QtGui import QAction, QIcon, QPixmap, QPainter
         from PySide6.QtSvg import QSvgRenderer
         from PySide6.QtCore import QByteArray
         
