@@ -34,6 +34,9 @@ PRIMITIVE_KEYS = {
     "gemini_api_key": "",
     "gemini_model": "gemini-3.1-flash-lite-preview",
     "gemini_enabled": False,
+    "instant_detection_enabled": True,
+    "skip_in_progress_files": True,
+    "file_ready_timeout": 300,
 }
 
 

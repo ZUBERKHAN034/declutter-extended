@@ -140,6 +140,50 @@ class Ui_settingsDialog(object):
 
         self.verticalLayout_2.addWidget(self.startupGroupBox)
 
+        self.processingGroupBox = QGroupBox(self.mainTab)
+        self.processingGroupBox.setObjectName(u"processingGroupBox")
+        self.verticalLayout_6 = QVBoxLayout(self.processingGroupBox)
+        self.verticalLayout_6.setObjectName(u"verticalLayout_6")
+
+        self.instantDetectionCheckBox = QCheckBox(self.processingGroupBox)
+        self.instantDetectionCheckBox.setObjectName(u"instantDetectionCheckBox")
+
+        self.verticalLayout_6.addWidget(self.instantDetectionCheckBox)
+
+        self.skipInProgressCheckBox = QCheckBox(self.processingGroupBox)
+        self.skipInProgressCheckBox.setObjectName(u"skipInProgressCheckBox")
+
+        self.verticalLayout_6.addWidget(self.skipInProgressCheckBox)
+
+        self.timeoutLayout = QHBoxLayout()
+        self.timeoutLayout.setObjectName(u"timeoutLayout")
+
+        self.fileReadyTimeoutLabel = QLabel(self.processingGroupBox)
+        self.fileReadyTimeoutLabel.setObjectName(u"fileReadyTimeoutLabel")
+
+        self.timeoutLayout.addWidget(self.fileReadyTimeoutLabel)
+
+        self.fileReadyTimeoutEdit = QLineEdit(self.processingGroupBox)
+        self.fileReadyTimeoutEdit.setObjectName(u"fileReadyTimeoutEdit")
+        self.fileReadyTimeoutEdit.setMaximumSize(QSize(60, 16777215))
+        self.fileReadyTimeoutEdit.setMaxLength(4)
+
+        self.timeoutLayout.addWidget(self.fileReadyTimeoutEdit)
+
+        self.timeoutSecondsLabel = QLabel(self.processingGroupBox)
+        self.timeoutSecondsLabel.setObjectName(u"timeoutSecondsLabel")
+
+        self.timeoutLayout.addWidget(self.timeoutSecondsLabel)
+
+        self.timeoutSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.timeoutLayout.addItem(self.timeoutSpacer)
+
+
+        self.verticalLayout_6.addLayout(self.timeoutLayout)
+
+        self.verticalLayout_2.addWidget(self.processingGroupBox)
+
         self.verticalSpacer_2 = QSpacerItem(20, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_2.addItem(self.verticalSpacer_2)
@@ -311,6 +355,11 @@ class Ui_settingsDialog(object):
         self.geminiTestButton.setText(QCoreApplication.translate("settingsDialog", u"Test Connection", None))
         self.startAtLoginCheckBox.setText(QCoreApplication.translate("settingsDialog", u"Launch Zeno at login", None))
         self.startupGroupBox.setTitle("")
+        self.processingGroupBox.setTitle("")
+        self.instantDetectionCheckBox.setText(QCoreApplication.translate("settingsDialog", u"Instant file detection", None))
+        self.skipInProgressCheckBox.setText(QCoreApplication.translate("settingsDialog", u"Skip files in progress", None))
+        self.fileReadyTimeoutLabel.setText(QCoreApplication.translate("settingsDialog", u"Ready check timeout:", None))
+        self.timeoutSecondsLabel.setText(QCoreApplication.translate("settingsDialog", u"seconds", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.mainTab), QCoreApplication.translate("settingsDialog", u"Main", None))
         self.dateDefGroupBox.setTitle(QCoreApplication.translate("settingsDialog", u"Date definition", None))
         self.label.setText(QCoreApplication.translate("settingsDialog", u"Which date (from file metadata) should be used in rule conditions?", None))

@@ -1,5 +1,6 @@
 import os
 import sys
+import threading
 from copy import deepcopy
 from time import time
 import logging
@@ -58,6 +59,8 @@ from zeno.store import load_settings, save_settings
 from zeno.rules import apply_all_rules, apply_rule, get_rule_by_id
 from zeno.file_utils import open_file
 from zeno.logging_utils import _refresh_log_file_handler
+from zeno.core.file_guard import is_file_ready, wait_until_ready
+from zeno.core.fs_watcher import FSWatcher
 
 from src.ui.macos_style import apply_macos_styling, init_macos_theme
 from zeno.ui.style_helpers import (
@@ -236,6 +239,10 @@ class RulesWindow(QMainWindow):
         self.timer.timeout.connect(self.start_thread)
         self.timer.start()
 
+        self._fs_watcher = FSWatcher(self)
+        self._fs_watcher.file_detected.connect(self._on_file_detected)
+        self._start_fs_watcher()
+
         self.instanced_thread = new_version_checker(self)
         self.instanced_thread.start()
         self.instanced_thread.version.connect(self.suggest_download)
@@ -245,6 +252,79 @@ class RulesWindow(QMainWindow):
         style_dialog(self)
         style_table_widget(self.ui.rulesTable)
         style_toolbar(self.ui.toolBar)
+
+    def _start_fs_watcher(self):
+        """Initialize and start the file system watcher based on current rules."""
+        from zeno.core.file_guard import set_enabled as set_guard_enabled
+        from zeno.core.file_guard import set_timeout as set_guard_timeout
+
+        settings = load_settings()
+
+        guard_enabled = settings.get("skip_in_progress_files", True)
+        set_guard_enabled(guard_enabled)
+
+        timeout = settings.get("file_ready_timeout", 300)
+        set_guard_timeout(timeout)
+
+        watcher_enabled = settings.get("instant_detection_enabled", True)
+        self._fs_watcher.set_enabled(watcher_enabled)
+
+        if not watcher_enabled or not self._fs_watcher.is_available():
+            return
+
+        paths = []
+        for rule in settings.get("rules", []):
+            if rule.get("enabled", False):
+                for folder in rule.get("folders", []):
+                    if os.path.isdir(folder):
+                        paths.append((folder, rule.get("recursive", False)))
+
+        if paths:
+            self._fs_watcher.update_watched_paths(paths)
+            logging.info(f"[Watcher] Started watching {len(paths)} folder(s)")
+
+    def _on_file_detected(self, file_path: str):
+        """Handle instant file detection - wait for ready then run rules."""
+        if not os.path.exists(file_path):
+            return
+
+        def process_file():
+            ready = wait_until_ready(file_path, max_wait=300, poll_interval=3)
+            if not ready:
+                logging.warning(f"[Watcher] Timed out waiting for: {file_path}")
+                return
+            self._run_rules_for_file(file_path)
+
+        thread = threading.Thread(target=process_file, daemon=True)
+        thread.start()
+
+    def _run_rules_for_file(self, file_path: str):
+        """Apply matching rules to a single file."""
+        from zeno.rules import apply_rule, get_files_affected_by_rule
+
+        settings = load_settings()
+        file_path = os.path.normpath(file_path)
+
+        for rule in settings.get("rules", []):
+            if not rule.get("enabled", False):
+                continue
+
+            rule_folders = rule.get("folders", [])
+            if not any(file_path.startswith(os.path.normpath(f)) for f in rule_folders):
+                continue
+
+            try:
+                affected_files = get_files_affected_by_rule(rule, allow_empty_conditions=True)
+                if file_path in affected_files:
+                    logging.debug(f"[Watcher] TRIGGERED — applying rule '{rule['name']}' to: {file_path}")
+                    # Apply the rule - apply_rule handles duplicate detection internally
+                    report, details = apply_rule(rule)
+                    if any(v > 0 for v in report.values()):
+                        msg = f"Rule '{rule['name']}' processed {sum(report.values())} file(s)"
+                        self.show_tray_message(msg, details)
+                    break
+            except Exception as e:
+                logging.exception(f"Error applying rule to file {file_path}: {e}")
 
     def suggest_download(self, version):
         """Suggests downloading a new version of the application if available."""
@@ -363,6 +443,8 @@ class RulesWindow(QMainWindow):
             + " minute(s)"
         )
         self.timer.setInterval(int(self.settings["rule_exec_interval"] * 1000))
+        # Restart file system watcher with new settings
+        self._start_fs_watcher()
 
     def _on_settings_closed(self):
         """Slot called when the Settings dialog is dismissed (OK or Cancel)."""
@@ -438,6 +520,7 @@ class RulesWindow(QMainWindow):
             self.settings["rules"].append(rule)
         save_settings(self.settings)
         self.load_rules()
+        self._start_fs_watcher()
 
     def duplicate_rule(self):
         """Duplicates the selected rule(s)."""
@@ -463,6 +546,7 @@ class RulesWindow(QMainWindow):
 
         save_settings(self.settings)
         self.load_rules()
+        self._start_fs_watcher()
 
     def add_ai_rule(self):
         """Opens the AI rule generation dialog."""
@@ -486,6 +570,7 @@ class RulesWindow(QMainWindow):
             self.settings["rules"].append(rule)
             save_settings(self.settings)
             self.load_rules()
+            self._start_fs_watcher()
             self._ai_dialog.accept()
         else:
             self._ai_dialog.show()
@@ -507,6 +592,7 @@ class RulesWindow(QMainWindow):
                 self.settings["rules"][r] = self.rule_window.rule
         save_settings(self.settings)
         self.load_rules()
+        self._start_fs_watcher()
 
     def delete_rule(self):
         """Deletes the selected rule(s)."""
@@ -539,6 +625,7 @@ class RulesWindow(QMainWindow):
                 save_settings(self.settings)
 
                 self.ui.rulesTable.clearSelection()
+                self._start_fs_watcher()
 
     def apply_rule(self):
         """Applies the selected rule."""
@@ -812,12 +899,15 @@ def main():
 
     window = _ensure_main_window()
 
-    # Clean up tray icon on quit so a stale icon never lingers
+    # Clean up tray icon and FS watcher on quit so a stale icon never lingers
     def _cleanup_tray():
         global _main_window
-        if _main_window is not None and hasattr(_main_window, 'trayIcon') and _main_window.trayIcon is not None:
-            _main_window.trayIcon.hide()
-            _main_window.trayIcon.deleteLater()
+        if _main_window is not None:
+            if hasattr(_main_window, 'trayIcon') and _main_window.trayIcon is not None:
+                _main_window.trayIcon.hide()
+                _main_window.trayIcon.deleteLater()
+            if hasattr(_main_window, '_fs_watcher') and _main_window._fs_watcher is not None:
+                _main_window._fs_watcher.stop()
     app.aboutToQuit.connect(_cleanup_tray)
 
     # Decide visibility based on persisted flag

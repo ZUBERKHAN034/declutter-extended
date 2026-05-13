@@ -1,6 +1,7 @@
 from fnmatch import fnmatch
 import logging
 import os
+import re
 from pathlib import Path
 from shutil import copytree, rmtree
 from time import time
@@ -9,6 +10,7 @@ from zeno.store import load_settings
 from zeno.file_utils import (get_file_time, convert_to_days, get_size, advanced_copy,
                          advanced_move, get_file_type,
                          _escape_glob)
+from zeno.core.file_guard import is_file_ready
 
 def apply_rule(rule, dryrun=False):
     report = {'copied': 0, 'moved': 0, 'moved to subfolder': 0, 'deleted': 0,
@@ -258,7 +260,10 @@ def get_files_affected_by_rule_folder(rule, dirname, files_found=None):
                             break
 
             if conditions_met:
-                out_files.append(os.path.normpath(fullname))
+                if not is_file_ready(fullname):
+                    logging.debug(f"[Guard] SKIP — file not ready: {fullname}")
+                else:
+                    out_files.append(os.path.normpath(fullname))
 
             # Recurse for 'Rename'; for other actions skip already-matched folders
             if (rule['action'] == 'Rename' or not conditions_met) and os.path.isdir(fullname) and rule['recursive']:

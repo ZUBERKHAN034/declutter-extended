@@ -7,3 +7,4 @@ requests
 packaging
 pyobjc-framework-Cocoa; sys_platform == "darwin"
 google-genai
+watchdog

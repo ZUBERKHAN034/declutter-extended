@@ -63,8 +63,8 @@ class SettingsDialog(QDialog):
         super(SettingsDialog, self).__init__()
         self.ui = Ui_settingsDialog()
         self.ui.setupUi(self)
-        self.setMinimumSize(560, 520)
-        self.resize(560, 520)
+        self.setMinimumSize(560, 600)
+        self.resize(560, 600)
         self.ui.aboutVersionLabel.setText(f"Version {VERSION}")
         from PySide6.QtGui import QPixmap
         import os, sys
@@ -95,11 +95,15 @@ class SettingsDialog(QDialog):
         style_group_box(self.ui.geminiGroupBox)
         style_group_box(self.ui.startupGroupBox)
         style_group_box(self.ui.dateDefGroupBox)
+        style_group_box(self.ui.processingGroupBox)
         style_line_edit(self.ui.ruleExecIntervalEdit)
         style_line_edit(self.ui.geminiKeyEdit)
+        style_line_edit(self.ui.fileReadyTimeoutEdit)
         style_combo_box(self.ui.geminiModelCombo)
         style_checkbox(self.ui.geminiEnableCheckBox)
         style_checkbox(self.ui.startAtLoginCheckBox)
+        style_checkbox(self.ui.instantDetectionCheckBox)
+        style_checkbox(self.ui.skipInProgressCheckBox)
         for rb in self.ui.dateDefGroupBox.findChildren(QRadioButton):
             style_radio_button(rb)
         style_secondary_btn(self.ui.geminiShowHideButton)
@@ -278,6 +282,17 @@ class SettingsDialog(QDialog):
         except Exception:
             self.ui.startAtLoginCheckBox.setChecked(False)
 
+        # --- Processing settings ---
+        self.ui.instantDetectionCheckBox.setChecked(
+            self.settings.get("instant_detection_enabled", True)
+        )
+        self.ui.skipInProgressCheckBox.setChecked(
+            self.settings.get("skip_in_progress_files", True)
+        )
+        self.ui.fileReadyTimeoutEdit.setText(
+            str(self.settings.get("file_ready_timeout", 300))
+        )
+
         if sys.platform == "darwin":
             self.ui.geminiKeyEdit.setText(self.settings.get("gemini_api_key", ""))
             model_id = self.settings.get("gemini_model", "gemini-3.1-flash-lite-preview")
@@ -374,6 +389,16 @@ class SettingsDialog(QDialog):
                 startup_disable()
         except Exception:
             pass
+
+        # --- Processing settings ---
+        self.settings["instant_detection_enabled"] = self.ui.instantDetectionCheckBox.isChecked()
+        self.settings["skip_in_progress_files"] = self.ui.skipInProgressCheckBox.isChecked()
+        try:
+            timeout = int(self.ui.fileReadyTimeoutEdit.text())
+            timeout = max(30, min(3600, timeout))
+            self.settings["file_ready_timeout"] = timeout
+        except ValueError:
+            self.settings["file_ready_timeout"] = 300
 
         if sys.platform == "darwin":
             self.settings["gemini_api_key"] = self.ui.geminiKeyEdit.text().strip()
