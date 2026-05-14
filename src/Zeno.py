@@ -74,6 +74,7 @@ from zeno.ui.style_helpers import (
     style_list_widget,
     style_section_label,
     populate_styled_list,
+    populate_styled_table,
 )
 from zeno.ui.design_tokens import C
 
@@ -665,7 +666,8 @@ class RulesWindow(QMainWindow):
         rules = [(int(r["id"]), r) for r in self.settings["rules"] if "id" in r]
         rules.sort(key=lambda y: y[0])
 
-        self.ui.rulesTable.setRowCount(len(rules))
+        populate_styled_table(self.ui.rulesTable, len(rules))
+        self.ui.rulesTable.setActualRowCount(len(rules))
         for i, (_, rule) in enumerate(rules):
             self.ui.rulesTable.setItem(i, 0, QTableWidgetItem(rule["name"]))
             status_item = QTableWidgetItem("Enabled" if rule["enabled"] else "Disabled")

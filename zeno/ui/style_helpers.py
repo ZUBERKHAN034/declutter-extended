@@ -1,5 +1,5 @@
 """All styling logic lives here. Every dialog calls these — no inline stylesheets."""
-from PySide6.QtWidgets import QWidget, QPushButton, QLineEdit, QTextEdit, QComboBox, QListWidget, QListWidgetItem, QTableWidget, QCheckBox, QLabel, QTabWidget, QFrame
+from PySide6.QtWidgets import QWidget, QPushButton, QLineEdit, QTextEdit, QComboBox, QListWidget, QListWidgetItem, QTableWidget, QTableWidgetItem, QCheckBox, QLabel, QTabWidget, QFrame, QApplication
 from PySide6.QtGui import QPalette, QColor
 from PySide6.QtCore import Qt
 from zeno.ui.design_tokens import C, R, is_dark
@@ -124,6 +124,112 @@ def populate_styled_list(list_widget: QListWidget, items, fill_empty_rows: bool 
         empty = QListWidgetItem("")
         empty.setFlags(Qt.NoItemFlags)
         list_widget.addItem(empty)
+
+
+def populate_styled_table(table_widget: QTableWidget, row_count: int, fill_empty_rows: bool = True):
+    """Set row count for a QTableWidget and pad with empty rows for two-tone effect."""
+    if row_count == 0:
+        table_widget.setRowCount(0)
+        return
+
+    if fill_empty_rows:
+        # Calculate how many rows are visible
+        viewport = table_widget.viewport()
+        if viewport:
+            QApplication.processEvents()
+            viewport_height = viewport.height()
+            row_height = table_widget.rowHeight(0)
+            if row_height <= 0:
+                row_height = 30
+            visible_rows = max(1, viewport_height // row_height)
+        else:
+            visible_rows = 6
+
+        # Add padding to fill visible area if needed
+        total_rows = max(row_count, visible_rows)
+        table_widget.setRowCount(total_rows)
+
+        # Add empty cells for padding rows
+        for i in range(row_count, total_rows):
+            for col in range(table_widget.columnCount()):
+                item = table_widget.item(i, col)
+                if item is None:
+                    empty = QTableWidgetItem("")
+                    empty.setFlags(Qt.NoItemFlags)
+                    table_widget.setItem(i, col, empty)
+    else:
+        table_widget.setRowCount(row_count)
+
+
+def _recalculate_table_padding(table_widget: QTableWidget):
+    """Recalculate padding rows for a table widget after resize."""
+    from zeno.ui.widgets import MacTableWidget
+
+    # Get actual row count from data (count non-empty rows)
+    actual_count = 0
+    for i in range(table_widget.rowCount()):
+        has_data = False
+        for col in range(table_widget.columnCount()):
+            item = table_widget.item(i, col)
+            if item and item.flags() & Qt.ItemIsEnabled:
+                has_data = True
+                break
+        if has_data:
+            actual_count = i + 1
+
+    if actual_count == 0:
+        return
+
+    if isinstance(table_widget, MacTableWidget):
+        table_widget.setActualRowCount(actual_count)
+
+    # Get visible row capacity
+    viewport = table_widget.viewport()
+    if not viewport:
+        return
+
+    QApplication.processEvents()
+    viewport_height = viewport.height()
+    row_height = table_widget.rowHeight(0)
+    if row_height <= 0:
+        row_height = 30
+
+    visible_rows = max(1, viewport_height // row_height)
+    total_rows = max(actual_count, visible_rows)
+
+    if table_widget.rowCount() != total_rows:
+        table_widget.setRowCount(total_rows)
+
+        # Add empty cells for padding if needed
+        for i in range(actual_count, total_rows):
+            for col in range(table_widget.columnCount()):
+                if table_widget.item(i, col) is None:
+                    empty = QTableWidgetItem("")
+                    empty.setFlags(Qt.NoItemFlags)
+                    table_widget.setItem(i, col, empty)
+
+
+def _clear_table_padding(table_widget: QTableWidget):
+    """Clear padding rows when user scrolls."""
+    from zeno.ui.widgets import MacTableWidget
+
+    # Count actual rows with data
+    actual_count = 0
+    for i in range(table_widget.rowCount()):
+        has_data = False
+        for col in range(table_widget.columnCount()):
+            item = table_widget.item(i, col)
+            if item and item.flags() & Qt.ItemIsEnabled:
+                has_data = True
+                break
+        if has_data:
+            actual_count = i + 1
+
+    if isinstance(table_widget, MacTableWidget):
+        table_widget.setActualRowCount(actual_count)
+
+    if actual_count > 0 and table_widget.rowCount() > actual_count:
+        table_widget.setRowCount(actual_count)
 
 
 def style_table_widget(w: QTableWidget):

@@ -1,7 +1,7 @@
 """Advanced button with loading spinner and state-based feedback (Success/Error/Retry)."""
 
 from PySide6.QtWidgets import QPushButton, QComboBox, QListView, QFrame, QTableWidget, QStyle, QStyleOptionButton
-from PySide6.QtCore import Qt, QTimer, QRectF, QRect, Signal as _Signal
+from PySide6.QtCore import Qt, QTimer, QRectF, QRect, Signal
 from PySide6.QtGui import QPainter, QColor, QPen, QPalette
 
 class MacComboBox(QComboBox):
@@ -74,16 +74,47 @@ class MacComboBox(QComboBox):
             popup_window.show()
 
 class MacTableWidget(QTableWidget):
-    """Custom QTableWidget with macOS-native styling."""
+    """Custom QTableWidget with macOS-native styling with dynamic padding."""
+    padding_rows_changed = Signal(int)
+
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._actual_row_count = 0
+        self.resizeTimer = QTimer(self)
+        self.resizeTimer.setSingleShot(True)
+        self.resizeTimer.timeout.connect(self._recalculate_padding)
+        self.verticalScrollBar().valueChanged.connect(self._on_scroll)
+
+    def setActualRowCount(self, count):
+        """Set the actual number of data rows (padding will be added dynamically)."""
+        self._actual_row_count = count
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        # Debounce resize events
+        self.resizeTimer.start(100)
+
+    def _recalculate_padding(self):
+        """Recalculate padding rows after resize."""
+        from zeno.ui.style_helpers import _recalculate_table_padding
+        _recalculate_table_padding(self)
+
+    def _on_scroll(self, value):
+        """Clear padding when user scrolls (they want to see more rows)."""
+        if value > 0:
+            from zeno.ui.style_helpers import _clear_table_padding
+            _clear_table_padding(self)
+
+    def getActualRowCount(self):
+        """Return the actual number of data rows."""
+        return self._actual_row_count
 
 class LoadingButton(QPushButton):
     """
     A button that shows a spinner when busy and can display success/error states.
     Now includes a retry countdown.
     """
-    retry_ready = _Signal()
+    retry_ready = Signal()
 
     def __init__(self, text="", parent=None):
         super().__init__(text, parent)
